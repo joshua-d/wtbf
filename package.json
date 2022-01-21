@@ -1,0 +1,8 @@
+{
+  "name": "wtbf",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.17.2",
+    "http-errors": "^2.0.0"
+  }
+}

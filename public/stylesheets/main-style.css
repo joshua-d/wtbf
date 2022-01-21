@@ -1,0 +1,17 @@
+#controls {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+}
+
+#voting {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+}
+
+#day-counter {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+}
