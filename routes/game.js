@@ -1,17 +1,15 @@
-var express = require('express');
-var router = express.Router();
-var path = require('path');
+let express = require('express');
+let path = require('path');
+let router = express.Router();
 
+let database = require('../database_bridge.js');
 
 router.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname + '/../views/game.html'));
+    res.sendFile(path.join(__dirname, '/../views/game.html'));
 });
 
 router.post('/start', function(req, res) {
-
-    res.send({
-        status: 'success'
-    });
+    database.start_game()
 });
 
 

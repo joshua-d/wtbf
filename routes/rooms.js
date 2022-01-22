@@ -1,53 +1,33 @@
-var express = require('express');
-var router = express.Router();
-var path = require('path');
+let express = require('express');
+let path = require('path');
+let router = express.Router();
 
-var Room = require('../assets/server/Room');
-
-var rooms = [];
+let database = require('../database_bridge.js');
 
 
 router.post('/create-room', function(req, res) {
-    let room = new Room(rooms);
-    rooms.push(room);
+    let room_data = database.create_room();
+
     res.send({
         status: 'success',
-        data: {
-            roomID: room.id
-        }
+        data: room_data
     });
 });
 
 router.post('/join-room', function(req, res) {
-    let join_room = null;
-    for (let room of rooms) {
-        if (room.id === req.body.roomID) {
-            join_room = room;
-            break;
-        }
+    let room_data = database.join_room(req.body.room_id);
+
+    if (room_data == null) {
+        res.send({
+            status: 'failure',
+            message: 'Unable to join room'
+        })
     }
 
-    if (join_room == null) {
-        res.send({
-            status: 'failure',
-            message: 'Room does not exist'
-        });
-    }
-    else if (!join_room.can_join()) {
-        res.send({
-            status: 'failure',
-            message: 'Game has already started'
-        });
-    }
-    else {
-        join_room.add_player();
-        res.send({
-            status: 'success',
-            data: {
-                roomID: req.body.roomID
-            }
-        });
-    }
+    res.send({
+        status: 'success',
+        data: room_data
+    })
 });
 
 

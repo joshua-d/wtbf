@@ -1,32 +1,32 @@
-var roomID;
+var room_id;
 
 async function create_room() {
     let res = await rooms_request('create-room', 'POST');
     if (successful(res)) {
-        $('#room-disp').text('Room: ' + res.data.roomID);
-        roomID = res.data.roomID;
+        $('#room-disp').text('Room: ' + res.data.room_id);
+        room_id = res.data.room_id;
     }
 }
 
 async function join_room() {
-    let roomID = prompt("Enter room ID");
+    let entered_room_id = prompt("Enter room ID");
     let res = await rooms_request('join-room', 'POST', {
-        roomID: roomID
+        room_id: entered_room_id
     });
     if (successful(res)) {
         alert('Successfully joined room.');
-        $('#room-disp').text('Room: ' + res.data.roomID);
-        roomID = res.data.roomID;
+        $('#room-disp').text('Room: ' + res.data.room_id);
+        room_id = res.data.room_id;
     } else
         alert(res.message);
 }
 
 async function start_game() {
-    if (roomID == null)
+    if (room_id == null)
         return;
 
     let res = await game_request('start', 'POST', {
-        roomID: roomID
+        room_id: room_id
     });
 
     if (successful(res)) {

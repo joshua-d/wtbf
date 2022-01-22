@@ -1,16 +1,17 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
+let createError = require('http-errors');
+let express = require('express');
+let path = require('path');
 
-var indexRouter = require('./routes/index');
-var gameRouter = require('./routes/game');
-var roomsRouter = require('./routes/rooms');
+let indexRouter = require('./routes/index');
+let gameRouter = require('./routes/game');
+let roomsRouter = require('./routes/rooms');
 
 
-var app = express();
+let app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
@@ -37,3 +38,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+//TODO think about reinstalling jquery and semantic - www refactor messed with them
