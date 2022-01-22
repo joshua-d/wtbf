@@ -12,11 +12,12 @@ let app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/', indexRouter);
 app.use('/game', gameRouter);
 app.use('/rooms', roomsRouter);
+
+app.use(express.static(path.join(__dirname, '/../frontend/public')));
+app.use(express.static(path.join(__dirname, '/../frontend/build')));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
