@@ -1,25 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import Home from './Home.js';
+import Game from './Game.js';
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {page: Home};
+
+        this.changePage = this.changePage.bind(this);
+    }
+    changePage(pageName) {
+        switch (pageName) {
+            case 'Home':
+                this.setState({page: Home});
+                break;
+            case 'Game':
+                this.setState({page: Game});
+                break;
+            default:
+                break;
+        }
+    }
+    render() {
+        return <this.state.page changePage={this.changePage} />;
+    }
 }
+
+
 
 export default App;
