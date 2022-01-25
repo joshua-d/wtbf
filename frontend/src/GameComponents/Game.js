@@ -1,10 +1,10 @@
 import React from 'react';
+import GameMap from './GameMap.js';
 
 class Game extends React.Component {
     render() {
-        return <div>
-            <h1>Game</h1>
-            <button onClick={() => alert(this.props.pageData.d1)}/>
+        return <div className="view-window">
+            <GameMap />
         </div>
     }
 

@@ -1,0 +1,35 @@
+<body>
+    <script src="https://pixijs.download/release/pixi.js"></script>
+    <div class="view-window">
+        <div id="game-map" class="map"></div>
+    </div>
+    <script>
+        let pixi = new PIXI.Application();
+        pixi.renderer.backgroundColor = '#ffffff';
+        document.getElementById('game-map').appendChild(pixi.view);
+        let graphics = new PIXI.Graphics();
+        pixi.stage.addChild(graphics);
+        graphics.beginFill(0x0000ff)
+        graphics.drawCircle(200, 200, 50);
+    </script>
+</body>
+
+<style>
+    .view-window {
+        background-color: lightgray;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: scroll;
+    }
+
+    .map {
+        background-color: gray;
+        width: 150%;
+        height: 150%;
+    }
+
+    body {
+        margin: 0;
+    }
+</style>
