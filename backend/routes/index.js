@@ -12,7 +12,7 @@ router.get('/test', function(req, res, next) {
 });
 
 router.get('/react', function(req, res) {
-    res.sendFile(path.join(__dirname, '/../../frontend/build/index.html'))
+    res.sendFile(path.join(__dirname, '/../../frontend/build/index.html'));
 });
 
 module.exports = router;

@@ -6,24 +6,24 @@ import Game from './Game.js';
 class App extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {page: Home};
+        this.state = {page: Home, pageData: null};
 
         this.changePage = this.changePage.bind(this);
     }
-    changePage(pageName) {
+    changePage(pageName, pageData=null) {
         switch (pageName) {
             case 'Home':
-                this.setState({page: Home});
+                this.setState({page: Home, pageData: pageData});
                 break;
             case 'Game':
-                this.setState({page: Game});
+                this.setState({page: Game, pageData: pageData});
                 break;
             default:
                 break;
         }
     }
     render() {
-        return <this.state.page changePage={this.changePage} />;
+        return <this.state.page changePage={this.changePage} pageData={this.state.pageData} />;
     }
 }
 

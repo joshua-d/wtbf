@@ -8,8 +8,11 @@ router.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, '/../views/game.html'));
 });
 
-router.post('/start', function(req, res) {
-    database.start_game()
+router.post('/start-game', function(req, res) {
+    let game_data = database.start_game(req.body.conn_id);
+    res.send({
+        status: 'success'
+    });
 });
 
 

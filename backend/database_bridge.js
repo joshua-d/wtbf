@@ -1,4 +1,6 @@
 //TODO this stuff is placeholders until I connect the real database!
+let Game = require('./game/game.js');
+
 let rooms = [];
 let games = [];
 let next_conn_id = 0;
@@ -59,7 +61,16 @@ function join_room(room_id) {
 }
 
 function start_game(conn_id) {
-
+    //find this user's room
+    for (let room of rooms) {
+        if (room.players.includes(conn_id)) {
+            //create a game for this room
+            games.push(new Game());
+            console.log('game created');
+            return true;
+        }
+    }
+    return false;
 }
 
 //This should pretty much remain the same when the real database is connected

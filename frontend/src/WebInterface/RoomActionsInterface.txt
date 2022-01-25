@@ -1,0 +1,37 @@
+async function create_room()
+
+Returns
+    Success:
+            {
+                conn_id: id representing this user's connection
+                room_id: id of the created room
+            }
+        Failure:
+            null
+
+
+async function join_room(room_id)
+
+Args
+    room_id: id of the room to join
+
+Returns
+    Success:
+        {
+            conn_id: id representing this user's connection
+            room_id: id of the joined room
+        }
+    Failure:
+        null
+
+
+async function start_game(conn_id)
+
+Args
+    conn_id: this user's connection id
+
+Returns
+    Success:
+        true
+    Failure:
+        false
