@@ -43,39 +43,21 @@ class Player {
 }
 
 class Beast {
-    constructor(map, player_start, min_distance_from_start) {
-        this.path =this._generate_path(map, player_start, min_distance_from_start);
-        this.location = this.path[0];
+    constructor() {
+        this.path = null;
     }
 
     //TODO refactor this
-    _generate_path(map, player_start, min_distance_from_start) {
+    _generate_path(map) {
         let beast_start = Math.floor(Math.random() * map.locations.length);
-        let distance = map.get_shortest_path(player_start, beast_start).length - 1;
 
-        for (let i = 0; distance < min_distance_from_start && i < tries_before_failure; i++) {
-            beast_start = Math.floor(Math.random() * map.locations.length);
-            distance = map.get_shortest_path(player_start, beast_start).length - 1;
-        }
+        let lower_length = Math.floor(lower_beast_path_percentage_bound * map.locations.length);
+        let upper_length = Math.ceil(upper_beast_path_percentage_bound * map.locations.length);
+        let length = lower_length + Math.floor(Math.random() * (upper_length - lower_length + 1));
 
-        if (distance < min_distance_from_start) {
-            console.log("Failure: could not get beast starting location over min distance from start");
-        }
+        let beast_path_retrace_amount = 1 + Math.floor(Math.random() * (max_beast_path_retrace_amount + 1));
 
-        let lower = Math.floor(lower_beast_path_percentage_bound * map.locations.length);
-        let upper = Math.ceil(upper_beast_path_percentage_bound * map.locations.length);
-        let length = lower + Math.floor(Math.random() * (upper - lower + 1));
-
-        let beast_path_retrace_amount = Math.floor(Math.random() * (max_beast_path_retrace_amount + 1));
-
-        let path = map.get_path(beast_start, beast_start, length, beast_path_retrace_amount);
-        for (let i = 0; path[0] == null && i < tries_before_failure; i++) {
-            path = map.get_path(beast_start, beast_start, length, beast_path_retrace_amount);
-        }
-
-        if (path[0] == null) {
-            console.log("Failure: could not get beast path");
-        }
+        let path = map.get_path_limited_retrace(beast_start, beast_start, length, beast_path_retrace_amount);
 
         path.pop();
         return path;
@@ -85,12 +67,42 @@ class Beast {
 class Game {
     constructor(id, player_amt) {
         this.id = id;
+
+        this.beast = new Beast();
+        this._generate_map(player_amt);
+
+    }
+
+    /* Generates map, beast path, and player start*/
+    _generate_map(player_amt) {
+
+        for (let i = 0; i < tries_before_failure; i++) {
+            let map = new LocationMap(player_amt);
+            let beast_path = this.beast._generate_path(map);
+
+            let min_distance_from_start = Math.floor(min_distance_from_start_percentage * map.locations.length);
+
+            for (let j = 0; j < tries_before_failure; j++) {
+                let player_start = Math.floor(Math.random() * map.locations.length);
+
+                if (beast_path.includes(player_start))
+                    continue;
+
+                let beast_start = beast_path[0];
+
+                if (map.get_shortest_path(player_start, beast_start).length >= min_distance_from_start) {
+                    this.map = map;
+                    this.beast.path = beast_path;
+                    this.player_start = player_start;
+                    return;
+                }
+            }
+        }
+
+        console.log('Failure: was not able to generate viable map');
         this.map = new LocationMap(player_amt);
-
-        this.player_start = 0;
-
-        this.min_distance_from_start = Math.floor(min_distance_from_start_percentage * this.map.locations.length);
-        this.beast = new Beast(this.map, this.player_start, this.min_distance_from_start);
+        this.beast.path = this.beast._generate_path(this.map);
+        this.player_start = this.map.locations[Math.floor(Math.random() * this.map.locations.length)];
     }
 }
 

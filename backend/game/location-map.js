@@ -79,115 +79,60 @@ class LocationMap {
 
     }
 
-    get_path(start, finish, length, retrace_amt, free_retrace=false) {
-        if (!free_retrace)
-            return this.get_path_max_retrace(start, finish, length, retrace_amt, start.id);
-        return this.get_path_free_retrace(start, finish, retrace_amt, start.id);
-    }
-
-    get_path_free_retrace(start, finish, length, retrace_amt, start_id, retrace_map=new Map()) {
+    /*
+    start: id of start
+    finish: id of finish
+    length: length of path
+    retraces_left: number of times to retrace a location in the path
+    touches: HELPER - list of locations that are in this path
+     */
+    get_path_limited_retrace(start, finish, length, retraces_left, touches=[]) {
+        let start_loc = this.locations[start];
+        let touches_clone = Array.from(touches);
+        touches_clone.push(start);
 
         if (length === 1) {
-            if (this.locations[start].connections.indexOf(finish) >= 0) {
-                if (retrace_map.has(finish)) {
-                    if (retrace_map.get(finish) < retrace_amt || (finish === start_id && retrace_map.get(finish) === 0))
-                        return [start, finish];
-                    else
-                        return [null];
+            if (start_loc.connections.includes(finish)) {
+                if ((touches_clone.includes(finish) && retraces_left === 1) || (!touches_clone.includes(finish) && retraces_left === 0)) {
+                    return [start, finish];
                 }
-                return [start, finish];
             }
-            else {
-                return [null]
-            }
+            return null;
         }
 
-        let start_index = Math.floor(Math.random() * this.locations[start].connections.length);
+        let unused_connections = [];
+        for (let connection of start_loc.connections)
+            unused_connections.push(connection);
 
-        for (let i = 0; i < this.locations[start].connections.length; i++) {
-            let connection = this.locations[start].connections[(start_index + i) % this.locations[start].connections.length];
+        while (unused_connections.length > 0) {
+            let next_connection_index = Math.floor(Math.random() * unused_connections.length);
+            let next_connection = unused_connections[next_connection_index];
+            unused_connections.splice(next_connection_index, 1);
 
-            if (start.id === start_id) {
-                if (!retrace_map.has(start_id))
-                    retrace_map.set(start_id, 0);
-            }
-
-            if (retrace_map.has(connection)) {
-                if (retrace_map.get(connection) === retrace_amt || (connection === finish && (retrace_map.get(finish) === retrace_amt - 1 || retrace_amt === 0))) // experimental ||
+            let retrace_subtractor = 0;
+            if (touches_clone.includes(next_connection)) {
+                if (retraces_left > 0)
+                    retrace_subtractor = 1;
+                else
                     continue;
-
-                retrace_map.set(connection, retrace_map.get(connection) + 1);
             }
-            else
-                retrace_map.set(connection, 0);
 
-            let path = this.get_path_free_retrace(connection, finish, length - 1, retrace_amt, start_id, retrace_map);
-            if (path[path.length - 1] == null) {
-                retrace_map.set(connection, retrace_map.get(connection) - 1);
-                continue;
-            }
-            path.unshift(start);
-            return path;
-        }
+            let potential_path = this.get_path_limited_retrace(next_connection, finish, length - 1, retraces_left - retrace_subtractor, touches_clone);
 
-        return [null];
-
-    }
-
-
-    get_path_max_retrace(start, finish, length, retrace_amt, start_id, retrace_map=new Map()) {
-
-        if (length === 1) {
-            if (this.locations[start].connections.indexOf(finish) >= 0) {
-                return [start, finish];
-            }
-            else {
-                return [null]
+            if (potential_path != null) {
+                potential_path.unshift(start);
+                return potential_path;
             }
         }
 
-        let count = 0;
-        for (let key of retrace_map.keys()) {
-            if (retrace_map.get(key) > 0)
-                count += retrace_map.get(key);
-        }
-
-        let start_index = Math.floor(Math.random() * this.locations[start].connections.length);
-
-        for (let i = 0; i < this.locations[start].connections.length; i++) {
-            let connection = this.locations[start].connections[(start_index + i) % this.locations[start].connections.length];
-
-            if (start.id === start_id) {
-                if (!retrace_map.has(start_id))
-                    retrace_map.set(start_id, 0);
-            }
-
-            if (retrace_map.has(connection)) {
-                if (retrace_map.get(connection) >= 0 && count === retrace_amt)
-                    continue;
-
-                retrace_map.set(connection, retrace_map.get(connection) + 1);
-            }
-            else
-                retrace_map.set(connection, 0);
-
-            let path = this.get_path_max_retrace(connection, finish, length - 1, retrace_amt, start_id, retrace_map);
-            if (path[path.length - 1] == null) {
-                retrace_map.set(connection, retrace_map.get(connection) - 1);
-                continue;
-            }
-            path.unshift(start);
-            return path;
-        }
-
-        return [null];
-
+        return null;
     }
 
     /*
     start: id of start
     finish: id of finish
     returns: list of ids of shortest path
+    TODO not sure how efficient/correct this is!
      */
     get_shortest_path(start, finish, length=0, shortest_length=-1, used=[]) {
 
@@ -235,60 +180,3 @@ class LocationMap {
 }
 
 module.exports = LocationMap;
-
-/*
-    get_path_no_retrace(start, finish, length, start_id, used=[]) {
-
-        if (length === 1) {
-            if (start.connections.indexOf(finish) >= 0) {
-                return [start, finish];
-            }
-            else {
-                return [null]
-            }
-        }
-
-        let start_index = Math.floor(Math.random() * start.connections.length);
-
-        for (let i = 0; i < start.connections.length; i++) {
-            let connection = start.connections[(start_index + i) % start.connections.length];
-
-            if (start.id === start_id)
-                used.push(start);
-
-            if (used.indexOf(connection) >= 0 || connection === finish)
-                continue;
-
-            used.push(connection);
-
-            let path = this.get_path_no_retrace(connection, finish, length - 1, start_id, used);
-            if (path[path.length - 1] == null) {
-                used.pop();
-                continue;
-            }
-            path.unshift(start);
-            return path;
-        }
-
-        return [null];
-
-    }
-*/
-
-
-/*
-let available_indexes = [];
-        for (let i = 0; i < locations.length; i++)
-            available_indexes.push(i);
-
-        let location_queue = [];
-        for (let i = 0; i < this.location_amt; i++) {
-            let index = Math.floor(Math.random() * available_indexes.length);
-            location_queue.push(available_indexes[index]);
-            available_indexes.splice(index, 1);
-            if (available_indexes.length === 0) {
-                for (let i = 0; i < locations.length; i++)
-                    available_indexes.push(i);
-            }
-        }
-*/

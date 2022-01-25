@@ -106,6 +106,7 @@ class GameMap extends React.Component {
     drawLocations() {
         console.log('drawing');
         this.state.graphics.clear();
+        while(this.state.graphics.children[0]) { this.state.graphics.removeChild(this.state.graphics.children[0]); }
 
         for (let loc of this.props.locations) {
             this.state.graphics.beginFill(0x0000ff);
