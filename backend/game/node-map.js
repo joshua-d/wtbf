@@ -164,9 +164,9 @@ class NodeMap {
             for (let j = 0; j < this.nodes.length; j++) {
                 if (i !== j) {
                     if (this.get_distance(this.nodes[i].get_position(), this.nodes[j].get_position()) <= min_distance * connection_closeness_factor) {
-                        if (this.nodes[i].connections.indexOf(this.nodes[j]) < 0) {
-                            this.nodes[i].connections.push(this.nodes[j]);
-                            this.nodes[j].connections.push(this.nodes[i]);
+                        if (this.nodes[i].connections.indexOf(j) < 0) {
+                            this.nodes[i].connections.push(j);
+                            this.nodes[j].connections.push(i);
                         }
                     }
                 }

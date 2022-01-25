@@ -5,6 +5,11 @@ let rooms = [];
 let games = [];
 let next_conn_id = 0;
 
+let next_game_id = 0;
+
+
+/* Rooms */
+
 function generate_room_id() {
     let room_id;
     let room_exists = false;
@@ -60,6 +65,7 @@ function join_room(room_id) {
     }
 }
 
+/* Returns true if game started, false if failed */
 function start_game(conn_id) {
     //find this user's room
     for (let room of rooms) {
@@ -72,6 +78,15 @@ function start_game(conn_id) {
     }
     return false;
 }
+
+
+/* Game */
+
+function get_game_id() {
+    return next_game_id++;
+}
+
+
 
 //This should pretty much remain the same when the real database is connected
 module.exports = {

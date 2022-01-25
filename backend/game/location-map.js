@@ -49,12 +49,6 @@ class LocationMap {
 
             location.id = i;
             location.position = this.node_map.nodes[i].position;
-            location.info = {
-                new: false,
-                //location: location,
-                footprints: [],
-                traces: []
-            };
 
             this.locations.push(location);
         }
@@ -62,8 +56,8 @@ class LocationMap {
         //Connection pointing
         for (let i = 0; i < this.location_amt; i++) {
             let connections = [];
-            for (let j = 0; j < this.node_map.nodes[i].connections.length; j++) {
-                connections.push(this.locations[this.node_map.nodes.indexOf(this.node_map.nodes[i].connections[j])])
+            for (let conn of this.node_map.nodes[i].connections) {
+                connections.push(conn)
             }
             this.locations[i].connections = connections;
         }
@@ -94,9 +88,9 @@ class LocationMap {
     get_path_free_retrace(start, finish, length, retrace_amt, start_id, retrace_map=new Map()) {
 
         if (length === 1) {
-            if (start.connections.indexOf(finish) >= 0) {
-                if (retrace_map.has(finish.id)) {
-                    if (retrace_map.get(finish.id) < retrace_amt || (finish.id === start_id && retrace_map.get(finish.id) === 0))
+            if (this.locations[start].connections.indexOf(finish) >= 0) {
+                if (retrace_map.has(finish)) {
+                    if (retrace_map.get(finish) < retrace_amt || (finish === start_id && retrace_map.get(finish) === 0))
                         return [start, finish];
                     else
                         return [null];
@@ -108,28 +102,28 @@ class LocationMap {
             }
         }
 
-        let start_index = Math.floor(Math.random() * start.connections.length);
+        let start_index = Math.floor(Math.random() * this.locations[start].connections.length);
 
-        for (let i = 0; i < start.connections.length; i++) {
-            let connection = start.connections[(start_index + i) % start.connections.length];
+        for (let i = 0; i < this.locations[start].connections.length; i++) {
+            let connection = this.locations[start].connections[(start_index + i) % this.locations[start].connections.length];
 
             if (start.id === start_id) {
                 if (!retrace_map.has(start_id))
                     retrace_map.set(start_id, 0);
             }
 
-            if (retrace_map.has(connection.id)) {
-                if (retrace_map.get(connection.id) === retrace_amt || (connection === finish && (retrace_map.get(finish.id) === retrace_amt - 1 || retrace_amt === 0))) // experimental ||
+            if (retrace_map.has(connection)) {
+                if (retrace_map.get(connection) === retrace_amt || (connection === finish && (retrace_map.get(finish) === retrace_amt - 1 || retrace_amt === 0))) // experimental ||
                     continue;
 
-                retrace_map.set(connection.id, retrace_map.get(connection.id) + 1);
+                retrace_map.set(connection, retrace_map.get(connection) + 1);
             }
             else
-                retrace_map.set(connection.id, 0);
+                retrace_map.set(connection, 0);
 
             let path = this.get_path_free_retrace(connection, finish, length - 1, retrace_amt, start_id, retrace_map);
             if (path[path.length - 1] == null) {
-                retrace_map.set(connection.id, retrace_map.get(connection.id) - 1);
+                retrace_map.set(connection, retrace_map.get(connection) - 1);
                 continue;
             }
             path.unshift(start);
@@ -144,7 +138,7 @@ class LocationMap {
     get_path_max_retrace(start, finish, length, retrace_amt, start_id, retrace_map=new Map()) {
 
         if (length === 1) {
-            if (start.connections.indexOf(finish) >= 0) {
+            if (this.locations[start].connections.indexOf(finish) >= 0) {
                 return [start, finish];
             }
             else {
@@ -158,28 +152,28 @@ class LocationMap {
                 count += retrace_map.get(key);
         }
 
-        let start_index = Math.floor(Math.random() * start.connections.length);
+        let start_index = Math.floor(Math.random() * this.locations[start].connections.length);
 
-        for (let i = 0; i < start.connections.length; i++) {
-            let connection = start.connections[(start_index + i) % start.connections.length];
+        for (let i = 0; i < this.locations[start].connections.length; i++) {
+            let connection = this.locations[start].connections[(start_index + i) % this.locations[start].connections.length];
 
             if (start.id === start_id) {
                 if (!retrace_map.has(start_id))
                     retrace_map.set(start_id, 0);
             }
 
-            if (retrace_map.has(connection.id)) {
-                if (retrace_map.get(connection.id) >= 0 && count === retrace_amt)
+            if (retrace_map.has(connection)) {
+                if (retrace_map.get(connection) >= 0 && count === retrace_amt)
                     continue;
 
-                retrace_map.set(connection.id, retrace_map.get(connection.id) + 1);
+                retrace_map.set(connection, retrace_map.get(connection) + 1);
             }
             else
-                retrace_map.set(connection.id, 0);
+                retrace_map.set(connection, 0);
 
             let path = this.get_path_max_retrace(connection, finish, length - 1, retrace_amt, start_id, retrace_map);
             if (path[path.length - 1] == null) {
-                retrace_map.set(connection.id, retrace_map.get(connection.id) - 1);
+                retrace_map.set(connection, retrace_map.get(connection) - 1);
                 continue;
             }
             path.unshift(start);
@@ -190,9 +184,14 @@ class LocationMap {
 
     }
 
+    /*
+    start: id of start
+    finish: id of finish
+    returns: list of ids of shortest path
+     */
     get_shortest_path(start, finish, length=0, shortest_length=-1, used=[]) {
 
-        if (start.connections.indexOf(finish) >= 0) {
+        if (this.locations[start].connections.indexOf(finish) >= 0) {
             return [start, finish];
         }
 
@@ -202,16 +201,16 @@ class LocationMap {
 
         let shortest_path = [null];
 
-        for (let i = 0; i < start.connections.length; i++) {
-            let connection = start.connections[i];
+        for (let i = 0; i < this.locations[start].connections.length; i++) {
+            let connection = this.locations[start].connections[i];
 
             if (used.length === 0)
-                used.push(start.id);
+                used.push(start);
 
-            if (used.indexOf(connection.id) >= 0)
+            if (used.indexOf(connection) >= 0)
                 continue;
 
-            used.push(connection.id);
+            used.push(connection);
 
             let path = this.get_shortest_path(connection, finish, length + 1, shortest_length, used);
             if (path[path.length - 1] == null) {
