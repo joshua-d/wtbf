@@ -131,50 +131,50 @@ class LocationMap {
     /*
     start: id of start
     finish: id of finish
-    returns: list of ids of shortest path
-    TODO not sure how efficient/correct this is!
+    returns: length of shortest path
+
+    Uses Dijkstra's algo. Can be modified to give path as well, start at finish
      */
-    get_shortest_path(start, finish, length=0, shortest_length=-1, used=[]) {
-
-        if (this.locations[start].connections.indexOf(finish) >= 0) {
-            return [start, finish];
+    get_shortest_path_length(start, finish) {
+        let unvisited = [];
+        let distance = {};
+        for (let loc of this.locations) {
+            unvisited.push(loc.id);
+            distance[loc.id] = null;
         }
 
-        if (length > shortest_length && shortest_length >= 0) {
-            return [null];
-        }
+        distance[start] = 0;
 
-        let shortest_path = [null];
+        let current_node = start;
 
-        for (let i = 0; i < this.locations[start].connections.length; i++) {
-            let connection = this.locations[start].connections[i];
+        while (unvisited.length > 0) {
 
-            if (used.length === 0)
-                used.push(start);
+            for (let conn of this.locations[current_node].connections) {
+                if (unvisited.includes(conn)) {
+                    let my_dist = distance[current_node] + 1;
+                    if (distance[conn] == null || my_dist < distance[conn])
+                        distance[conn] = my_dist;
+                }
+            }
+            unvisited.splice(unvisited.indexOf(current_node), 1);
 
-            if (used.indexOf(connection) >= 0)
-                continue;
+            let least_dist = null;
+            let least_dist_node = null;
 
-            used.push(connection);
-
-            let path = this.get_shortest_path(connection, finish, length + 1, shortest_length, used);
-            if (path[path.length - 1] == null) {
-                used.pop();
-                continue;
+            for (let node of unvisited) {
+                if (least_dist == null || (distance[node] != null && distance[node] < least_dist)) {
+                    least_dist = distance[node];
+                    least_dist_node = node;
+                }
             }
 
-            if (path.length < shortest_length || shortest_length < 0) {
-                path.unshift(start);
-                shortest_path = path;
-                shortest_length = path.length;
+            if (least_dist_node === finish) {
+                return distance[finish];
             }
 
-            used.pop();
-
+            current_node = least_dist_node;
         }
-
-        return shortest_path;
-
+        
     }
 
 }

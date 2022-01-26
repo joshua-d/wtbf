@@ -6,7 +6,7 @@ const upper_beast_path_percentage_bound = 0.4;
 const min_distance_from_start_percentage = 0.1;
 const max_beast_path_retrace_amount = 2;
 
-const tries_before_failure = 100;
+const tries_before_failure = 10;
 
 const footprint_chance = 0.5;
 const trace_chance = 0.33;
@@ -57,7 +57,9 @@ class Beast {
 
         let beast_path_retrace_amount = 1 + Math.floor(Math.random() * (max_beast_path_retrace_amount + 1));
 
+        console.log('getting beast path');
         let path = map.get_path_limited_retrace(beast_start, beast_start, length, beast_path_retrace_amount);
+        console.log('done');
 
         path.pop();
         return path;
@@ -77,12 +79,15 @@ class Game {
     _generate_map(player_amt) {
 
         for (let i = 0; i < tries_before_failure; i++) {
+            console.log('trying to generate a map');
+
             let map = new LocationMap(player_amt);
             let beast_path = this.beast._generate_path(map);
 
             let min_distance_from_start = Math.floor(min_distance_from_start_percentage * map.locations.length);
 
             for (let j = 0; j < tries_before_failure; j++) {
+                console.log('trying to get player start');
                 let player_start = Math.floor(Math.random() * map.locations.length);
 
                 if (beast_path.includes(player_start))
@@ -90,10 +95,13 @@ class Game {
 
                 let beast_start = beast_path[0];
 
-                if (map.get_shortest_path(player_start, beast_start).length >= min_distance_from_start) {
+                console.log('getting shortest path');
+                if (map.get_shortest_path_length(player_start, beast_start) >= min_distance_from_start) {
+                    console.log('done');
                     this.map = map;
                     this.beast.path = beast_path;
                     this.player_start = player_start;
+                    console.log(map.get_shortest_path_length(player_start, beast_start))
                     return;
                 }
             }
@@ -103,6 +111,7 @@ class Game {
         this.map = new LocationMap(player_amt);
         this.beast.path = this.beast._generate_path(this.map);
         this.player_start = this.map.locations[Math.floor(Math.random() * this.map.locations.length)];
+
     }
 }
 
