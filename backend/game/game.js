@@ -6,7 +6,7 @@ const upper_beast_path_percentage_bound = 0.4;
 const min_distance_from_start_percentage = 0.1;
 const max_beast_path_retrace_amount = 2;
 
-const tries_before_failure = 10;
+const tries_before_failure = 50;
 
 const footprint_chance = 0.5;
 const trace_chance = 0.33;
@@ -49,6 +49,7 @@ class Beast {
 
     //TODO refactor this
     _generate_path(map) {
+        //TODO if rerolling maps becomes time consuming, consider rerolling beast start and length
         let beast_start = Math.floor(Math.random() * map.locations.length);
 
         let lower_length = Math.floor(lower_beast_path_percentage_bound * map.locations.length);
@@ -61,7 +62,9 @@ class Beast {
         let path = map.get_path_limited_retrace(beast_start, beast_start, length, beast_path_retrace_amount);
         console.log('done');
 
-        path.pop();
+        if (path != null)
+            path.pop();
+
         return path;
     }
 }
@@ -72,7 +75,6 @@ class Game {
 
         this.beast = new Beast();
         this._generate_map(player_amt);
-
     }
 
     /* Generates map, beast path, and player start*/
@@ -84,11 +86,19 @@ class Game {
             let map = new LocationMap(player_amt);
             let beast_path = this.beast._generate_path(map);
 
+            if (beast_path == null) {
+                console.log('null beast path');
+                continue;
+            }
+
             let min_distance_from_start = Math.floor(min_distance_from_start_percentage * map.locations.length);
 
-            for (let j = 0; j < tries_before_failure; j++) {
-                console.log('trying to get player start');
+            console.log('trying to get player start');
+            for (
                 let player_start = Math.floor(Math.random() * map.locations.length);
+                player_start !== player_start - 1;
+                player_start = (player_start + 1) % map.locations.length
+            ) {
 
                 if (beast_path.includes(player_start))
                     continue;
@@ -97,14 +107,14 @@ class Game {
 
                 console.log('getting shortest path');
                 if (map.get_shortest_path_length(player_start, beast_start) >= min_distance_from_start) {
-                    console.log('done');
                     this.map = map;
                     this.beast.path = beast_path;
                     this.player_start = player_start;
-                    console.log(map.get_shortest_path_length(player_start, beast_start))
+                    console.log('done!');
                     return;
                 }
             }
+
         }
 
         console.log('Failure: was not able to generate viable map');

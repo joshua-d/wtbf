@@ -79,6 +79,8 @@ class LocationMap {
 
     }
 
+    //TODO don't need dijkstra and path length to be separate if shortest path is never gonna be used
+
     /*
     start: id of start
     finish: id of finish
@@ -86,7 +88,10 @@ class LocationMap {
     retraces_left: number of times to retrace a location in the path
     touches: HELPER - list of locations that are in this path
      */
-    get_path_limited_retrace(start, finish, length, retraces_left, touches=[]) {
+    get_path_limited_retrace(start, finish, length, retraces_left, touches=[], recursions=[0], max_recursions=1000) {
+        if (recursions[0] >= max_recursions)
+            return null;
+
         let start_loc = this.locations[start];
         let touches_clone = Array.from(touches);
         touches_clone.push(start);
@@ -98,6 +103,12 @@ class LocationMap {
                 }
             }
             return null;
+        }
+
+        if (start !== finish) {
+            let distances = this.get_dijkstra_distances(start, finish);
+            if (distances[finish] > length)
+                return null;
         }
 
         let unused_connections = [];
@@ -117,7 +128,8 @@ class LocationMap {
                     continue;
             }
 
-            let potential_path = this.get_path_limited_retrace(next_connection, finish, length - 1, retraces_left - retrace_subtractor, touches_clone);
+            recursions[0] += 1;
+            let potential_path = this.get_path_limited_retrace(next_connection, finish, length - 1, retraces_left - retrace_subtractor, touches_clone, recursions);
 
             if (potential_path != null) {
                 potential_path.unshift(start);
@@ -131,11 +143,14 @@ class LocationMap {
     /*
     start: id of start
     finish: id of finish
-    returns: length of shortest path
+    length_only: boolean - true: return length of path, false: return path
+    returns: shortest path or length of shortest path
+
+    start and finish cannot be equal
 
     Uses Dijkstra's algo. Can be modified to give path as well, start at finish
      */
-    get_shortest_path_length(start, finish) {
+    get_dijkstra_distances(start, finish) {
         let unvisited = [];
         let distance = {};
         for (let loc of this.locations) {
@@ -144,7 +159,6 @@ class LocationMap {
         }
 
         distance[start] = 0;
-
         let current_node = start;
 
         while (unvisited.length > 0) {
@@ -169,12 +183,34 @@ class LocationMap {
             }
 
             if (least_dist_node === finish) {
-                return distance[finish];
+                return distance;
             }
 
             current_node = least_dist_node;
         }
-        
+    }
+
+    get_shortest_path(start, finish, distances) {
+        let path = [finish];
+        let current_node = finish;
+        while (current_node !== start) {
+            let least_dist = null;
+            let least_dist_node = null;
+            for (let conn of this.locations[current_node].connections) {
+                if (least_dist == null || (distances[conn] != null && distances[conn] < least_dist)) {
+                    least_dist = distances[conn];
+                    least_dist_node = conn;
+                }
+            }
+            path.unshift(least_dist_node);
+            current_node = least_dist_node;
+        }
+        return path;
+    }
+
+    get_shortest_path_length(start, finish) {
+        let distances = this.get_dijkstra_distances(start, finish);
+        return distances[finish];
     }
 
 }
