@@ -37,10 +37,13 @@ class LocationMap {
         if (this.village_amt === 0)
             this.village_amt = 1;
 
-        this.generate_locations();
+        this._generate_locations();
     }
 
-    generate_locations() {
+    /*
+    Generates locations for this map, stores in this.locations
+     */
+    _generate_locations() {
         this.locations = [];
 
         //Location assignment
@@ -79,14 +82,18 @@ class LocationMap {
 
     }
 
-    //TODO don't need dijkstra and path length to be separate if shortest path is never gonna be used
 
     /*
     start: id of start
     finish: id of finish
     length: length of path
     retraces_left: number of times to retrace a location in the path
+    
     touches: HELPER - list of locations that are in this path
+    recursions: HELPER - current number of recursions
+    max_recursions: HELPER - max number of recursions before returning null
+    
+    This is the main logic used to generate the beast's path.
      */
     get_path_limited_retrace(start, finish, length, retraces_left, touches=[], recursions=[0], max_recursions=1000) {
         if (recursions[0] >= max_recursions)
@@ -106,7 +113,7 @@ class LocationMap {
         }
 
         if (start !== finish) {
-            let distances = this.get_dijkstra_distances(start, finish);
+            let distances = this._get_dijkstra_distances(start, finish);
             if (distances[finish] > length)
                 return null;
         }
@@ -143,14 +150,13 @@ class LocationMap {
     /*
     start: id of start
     finish: id of finish
-    length_only: boolean - true: return length of path, false: return path
-    returns: shortest path or length of shortest path
+    returns: map of loc id to distance from start
 
     start and finish cannot be equal
 
-    Uses Dijkstra's algo. Can be modified to give path as well, start at finish
+    Uses Dijkstra's algo
      */
-    get_dijkstra_distances(start, finish) {
+    _get_dijkstra_distances(start, finish) {
         let unvisited = [];
         let distance = {};
         for (let loc of this.locations) {
@@ -190,6 +196,12 @@ class LocationMap {
         }
     }
 
+    /*
+    start: id of start
+    finish: id of finish
+    distances: map of loc distances returned by calling _get_dijkstra_distances(start, finish)
+    returns: list of loc ids of the shortest path between start and finish
+     */
     get_shortest_path(start, finish, distances) {
         let path = [finish];
         let current_node = finish;
@@ -208,8 +220,13 @@ class LocationMap {
         return path;
     }
 
+    /*
+    start: id of start
+    finish: id of finish
+    returns: length of shortest path between start and finish
+     */
     get_shortest_path_length(start, finish) {
-        let distances = this.get_dijkstra_distances(start, finish);
+        let distances = this._get_dijkstra_distances(start, finish);
         return distances[finish];
     }
 

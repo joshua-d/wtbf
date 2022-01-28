@@ -58,9 +58,7 @@ class Beast {
 
         let beast_path_retrace_amount = 1 + Math.floor(Math.random() * (max_beast_path_retrace_amount + 1));
 
-        console.log('getting beast path');
         let path = map.get_path_limited_retrace(beast_start, beast_start, length, beast_path_retrace_amount);
-        console.log('done');
 
         if (path != null)
             path.pop();
@@ -81,19 +79,16 @@ class Game {
     _generate_map(player_amt) {
 
         for (let i = 0; i < tries_before_failure; i++) {
-            console.log('trying to generate a map');
 
             let map = new LocationMap(player_amt);
             let beast_path = this.beast._generate_path(map);
 
             if (beast_path == null) {
-                console.log('null beast path');
                 continue;
             }
 
             let min_distance_from_start = Math.floor(min_distance_from_start_percentage * map.locations.length);
 
-            console.log('trying to get player start');
             for (
                 let player_start = Math.floor(Math.random() * map.locations.length);
                 player_start !== player_start - 1;
@@ -105,12 +100,10 @@ class Game {
 
                 let beast_start = beast_path[0];
 
-                console.log('getting shortest path');
                 if (map.get_shortest_path_length(player_start, beast_start) >= min_distance_from_start) {
                     this.map = map;
                     this.beast.path = beast_path;
                     this.player_start = player_start;
-                    console.log('done!');
                     return;
                 }
             }
