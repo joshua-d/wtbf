@@ -1,10 +1,16 @@
 //TODO this stuff is placeholders until I connect the real database!
 let Game = require('./game/game.js');
 
+/* [ { id, players: [conn_id] } ] */
 let rooms = [];
-let games = [];
-let next_conn_id = 0;
 
+/* [Game] */
+let games = [];
+
+let game_by_conn_id = {};
+let player_id_by_conn_id = {};
+
+let next_conn_id = 0;
 let next_game_id = 0;
 
 
@@ -65,25 +71,29 @@ function join_room(room_id) {
     }
 }
 
-/* Returns true if game started, false if failed */
-function start_game(conn_id) {
-    //find this user's room
-    for (let room of rooms) {
-        if (room.players.includes(conn_id)) {
-            //create a game for this room
-            games.push(new Game());
-            console.log('game created');
-            return true;
-        }
-    }
-    return false;
-}
-
 
 /* Game */
 
 function get_game_id() {
     return next_game_id++;
+}
+
+/* Returns true if game started, false if failed */
+function start_game(conn_id) {
+    for (let room of rooms) {
+        if (room.players.includes(conn_id)) {
+            let game = new Game(get_game_id(), room.players.length);
+            for (let player_id = 0; player_id < room.players.length; player_id++) {
+                let player = room.players[player_id];
+                game_by_conn_id[player] = game;
+                player_id_by_conn_id[player] = player_id;
+            }
+            games.push(game);
+            console.log('game started');
+            return true;
+        }
+    }
+    return false;
 }
 
 
