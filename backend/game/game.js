@@ -76,11 +76,6 @@ class Beast {
         return path;
     }
 
-    rampage() {
-        let rampage_len = min_beast_rampage + Math.floor((Math.random() * (max_beast_rampage - min_beast_rampage + 1)));
-        this.path_index = this.path_index + (rampage_len % this.path.length);
-        this.location = this.path[this.path_index];
-    }
 }
 
 class Game {
@@ -99,8 +94,9 @@ class Game {
         this.day = 1;
         this.infos = {};
         this.visible_infos = {};
-        this.can_die = false;
         this.num_info_locs = 0;
+
+        this.new_info_locs = [];
 
         this._generate_map(player_amt);
         this._init_players(player_amt);
@@ -170,13 +166,18 @@ class Game {
         for (let location of this.map.locations) {
             this.infos[location.id] = {
                 footprints: [],
+                aged_footprints: [],
                 traces: [],
-                markings: []
+                markings: [], // markings don't need to be a list because there can only ever be one of each, but this makes things easier
+                aged_markings: []
             };
             this.visible_infos[location.id] = {
                 footprints: [],
+                aged_footprints: [],
                 traces: [],
-                markings: []
+                markings: [],
+                aged_markings: [],
+                info_present: false
             };
         }
     }
@@ -194,6 +195,7 @@ class Game {
 
     /* Rolls to generate info at beast's location */
     _generate_beast_info() {
+        //TODO may be better to store more info in backend infos and have a parser for the frontend - we'll see!
         let leaves_footprint = Math.random() < footprint_chance;
         let leaves_trace = Math.random() < trace_chance;
         let footprint_age_visible = Math.random() < footprint_age_visible_chance;
@@ -204,47 +206,46 @@ class Game {
         if (leaves_footprint) {
             if (!footprint_direction_visible) {
                 // Marking is a directionless footprint
-                let new_marking = {
-                    day_made: this.day,
-                    age_visible: footprint_age_visible,
-                    found: false
-                };
-
-                // New marking replaces existing marking in same category - age visible or age not visible
-                let replaced = false;
-                for (let marking_idx = 0; marking_idx < loc_infos.markings.length; ++marking_idx) {
-                    let marking = loc_infos.markings[marking_idx];
-                    if (marking.age_visible === footprint_age_visible) {
-                        loc_infos.markings[marking_idx] = new_marking;
-                        replaced = true;
-                        break;
-                    }
+                if (footprint_age_visible) {
+                    loc_infos.aged_markings = [{
+                        day_made: this.day,
+                        day_found: null
+                    }];
                 }
-                if (!replaced) {
-                    loc_infos.markings.push(new_marking);
+                else {
+                    loc_infos.markings = [{
+                        day_found: null
+                    }];
                 }
             }
             else {
                 let next_loc_ind = (this.beast.path_index + 1) % this.beast.path.length;
                 let next_loc = this.beast.path[next_loc_ind];
                 let new_footprint = {
-                    day_made: this.day,
                     direction: next_loc,
-                    age_visible: footprint_age_visible,
-                    found: false
+                    day_found: null
                 };
 
+                let fp_list;
+                if (footprint_age_visible) {
+                    fp_list = loc_infos.aged_footprints;
+                    new_footprint.day_made = this.day;
+                }
+                else {
+                    fp_list = loc_infos.footprints;
+                }
+
                 let replaced = false;
-                for (let fp_idx = 0; fp_idx < loc_infos.footprints.length; ++fp_idx) {
-                    let footprint = loc_infos.footprints[fp_idx];
+                for (let fp_idx = 0; fp_idx < fp_list.length; ++fp_idx) {
+                    let footprint = fp_list[fp_idx];
                     if (footprint.direction === new_footprint.direction) {
-                        loc_infos.footprints[fp_idx] = new_footprint;
+                        fp_list[fp_idx] = new_footprint;
                         replaced = true;
                         break;
                     }
                 }
                 if (!replaced) {
-                    loc_infos.footprints.push(new_footprint);
+                    fp_list.push(new_footprint);
                 }
             }
         }
@@ -255,9 +256,8 @@ class Game {
                 prev_loc_ind = this.beast.path.length - 1;
             let prev_loc = this.beast.path(prev_loc_ind);
             let new_trace = {
-                day_made: this.day,
                 from: prev_loc,
-                found: false
+                day_found: null
             };
 
             let replaced = false;
@@ -283,6 +283,81 @@ class Game {
         this.beast.location = this.beast.path[this.beast.path_index];
     }
 
+    /* Beast rampages forward without leaving info - between min & max, then steps until not in a player's loc */
+    _rampage_beast() {
+        let rampage_len = min_beast_rampage + Math.floor((Math.random() * (max_beast_rampage - min_beast_rampage + 1)));
+        let next_path_index = (this.beast.path_index + rampage_len) % this.beast.path.length;
+        let next_location = this.beast.path[next_path_index];
+
+        let player_locs = [];
+        for (let player of this.players) {
+            if (!player.dead) {
+                player_locs.push(player.location);
+            }
+        }
+
+        /*
+        * TODO if, somehow, the players are lined up on the beast's entire path, he will have nowhere to go and this
+        * will run forever. Num players can never be GTE beast path len
+        */
+        while (player_locs.includes(next_location)) {
+            next_path_index = (this.beast.path_index + 1) % this.beast.path.length;
+            next_location = this.beast.path[next_path_index];
+        }
+
+        this.beast.path_index = next_path_index;
+        this.beast.location = next_location;
+    }
+
+    /* Updates this location's visible infos in this.visible_infos[location] - returns new info messages
+    *  Also increments num_info_locs if necessary, and fills new_info_locs
+    */
+    _check_for_infos(location) {
+        // this func is a little bit menkis
+        let loc_infos = this.infos[location];
+        let visible_loc_infos = this.visible_infos[location];
+
+        let info_present_already = visible_loc_infos.info_present;
+
+        if (!info_present_already) {
+            this.visible_infos[location] = {
+                footprints: [],
+                aged_footprints: [],
+                traces: [],
+                markings: [],
+                aged_markings: [],
+                info_present: false
+            };
+        }
+
+        let messages = [];
+
+        for (let info_key of Object.keys(loc_infos)) {
+            for (let info of loc_infos[info_key]) {
+                visible_loc_infos[info_key].push(info);
+                if (info.day_found == null) {
+                    messages.push(this._info_message(info_key, info, location));
+                    info.day_found = this.day;
+                    if (!this.new_info_locs.includes(location))
+                        this.new_info_locs.push(location);
+                }
+                visible_loc_infos.info_present = true;
+            }
+        }
+
+        if (!info_present_already && visible_loc_infos.info_present) {
+            ++this.num_info_locs;
+        }
+
+        return messages;
+    }
+
+    /* Returns whether or not a player can die at location right now
+    *  Can die if X infos have been found, or this location has info present
+    */
+    _can_die(location) {
+        return this.num_info_locs >= num_infos_before_death || this.visible_infos[location].info_present;
+    }
 
     /* Returns whether or not the player with id can move to location
     *  Can't move if dead
@@ -335,27 +410,94 @@ class Game {
 
 
     /* Moves beast, assumes players have moved to their location for the start of this turn, updates state */
-    _do_turn() {
+    do_turn() {
+        let messages = [];
+
         this._move_beast();
 
+        // Check for win/lose if trapping
         if (this.ambushing || this.trapping) { //TODO prob could combine to one var trapping
             if (this.beast.location === this.trap_location) {
                 //Win
-
+                console.log('win');
+                return;
+            }
+            else {
+                //Fucking lose
+                console.log('lose');
                 return;
             }
         }
 
+        // Check for beast encounters
         for (let player of this.players) {
             if (!player.dead && player.location === this.beast.location) {
                 //Player has run into beast
-                if (this.can_die) {
+                if (this._can_die(player.location)) {
+                    //Player dies
                     player.die();
-                    this.beast.rampage();
+                    this._rampage_beast();
+                    messages.push(this._player_death_message(player));
+                }
+                else {
+                    //Player runs back to prev location
+                    messages.push(this._beast_encounter_message(player));
+                    let player_loc = player.location;
+                    player.location = player.prev_location;
+                    player.prev_location = player_loc;
                 }
             }
         }
 
+        // Check for infos
+        this.new_info_locs = [];
+        for (let player of this.players) {
+            if (!player.dead) {
+                let loc_msgs = this._check_for_infos(player.location);
+                for (let msg of loc_msgs)
+                    messages.push(msg);
+            }
+        }
+
+        this._update_visible_locations();
+
+    }
+
+    /* Returns locations mapped to their info objs of locations with newfound info (based on new_info_locs)
+    *  Utility for efficient sending to FE
+    */
+    get_info_updates() {
+        let info_updates = {};
+        for (let loc of this.new_info_locs) {
+            info_updates[loc] = this.visible_infos[loc];
+        }
+        return info_updates;
+    }
+
+    _player_death_message(player) {
+        return `Player ${player.id} has died at ${this.map.locations[player.location].name}. The beast tunnels forward!`;
+    }
+
+    _beast_encounter_message(player) {
+        return `Player ${player.id} encountered the beast at ${this.map.locations[player.location].name}. Narrowly escaped!`;
+    }
+
+    _info_message(info_key, info, location) {
+        if (info_key === 'aged_footprints') {
+            return `You found a new footprint at ${this.map.locations[location].name}! It is heading toward ${this.map.locations[info.direction].name}. It is ${this.day - info.day_found} days old.`
+        }
+        else if (info_key === 'footprints') {
+            return `You found a new footprint at ${this.map.locations[location].name}! It is heading toward ${this.map.locations[info.direction].name}. You could not determine its age...`;
+        }
+        else if (info_key === 'traces') {
+            return `You found ${this.map.locations[info.from].trace} at ${this.map.locations[location].name}... The beast must have come from ${this.map.locations[info.from].name}!`;
+        }
+        else if (info_key === 'aged_markings') {
+            return `You found a new marking at ${this.map.locations[location].name}! It is ${this.day - info.day_found} days old.`
+        }
+        else if (info_key === 'markings') {
+            return `You found a new marking at ${this.map.locations[location].name}! You could not determine its age.`
+        }
     }
 
 }
