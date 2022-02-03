@@ -1,5 +1,6 @@
 import React from 'react';
 import RoomActions from './WebInterface/RoomActions.js'
+import { IsGameStartedChecker } from './WebInterface/Checkers';
 
 class Home extends React.Component {
     render() {
@@ -17,7 +18,9 @@ class Home extends React.Component {
         super(props);
         this.state = {
             room_id: null,
-            conn_id: null
+            conn_id: null,
+
+            igs_checker: null
         };
 
         this.create_room = this.create_room.bind(this);
@@ -43,6 +46,12 @@ class Home extends React.Component {
                 room_id: room_data.room_id,
                 conn_id: room_data.conn_id
             });
+
+            let igs_checker = new IsGameStartedChecker(this.state.conn_id, function(res) {
+                console.log(res);
+                return true;
+            });
+            igs_checker.start();
         }
     }
 

@@ -96,6 +96,15 @@ function start_game(conn_id) {
     return false;
 }
 
+function get_player_id(conn_id) {
+    return player_id_by_conn_id[conn_id];
+}
+
+function get_game_state(conn_id) {
+    let game = game_by_conn_id[conn_id];
+
+}
+
 
 
 //This should pretty much remain the same when the real database is connected

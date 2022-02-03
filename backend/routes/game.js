@@ -15,14 +15,10 @@ router.post('/start-game', function(req, res) {
     });
 });
 
-let Game = require('../game/game');
-router.get('/locations', function(req, res) {
-    let g = new Game(0, 4);
-    res.send({
-        locations: g.map.locations,
-        beast_path: g.beast.path,
-        player_start: g.player_start,
-    });
+router.get('/is-game-started', function(req, res) {
+    let params = req.query;
+    console.log(params);
+    res.send({status: 'success'});
 });
 
 

@@ -474,6 +474,46 @@ class Game {
         return info_updates;
     }
 
+    /* Returns object representing full game state visible to players */
+    get_full_state() {
+        let state = {
+            players: [],
+            locations: []
+        };
+
+        for (let player of this.players) {
+            state.players.push({
+                id: player.id,
+                location: player.location
+            });
+        }
+
+        for (let loc_id of this.visible_locations) {
+            let location = {};
+            Object.assign(location, this.map.locations[loc_id]);
+            location.info = this.visible_infos[loc_id];
+        }
+
+        return state;
+    }
+
+    /* Returns object containing player locations and info updates */
+    get_updated_state() {
+        let state = {
+            players: [],
+            info_updates: this.get_info_updates()
+        };
+
+        for (let player of this.players) {
+            state.players.push({
+                id: player.id,
+                location: player.location
+            });
+        }
+
+        return state;
+    }
+
     _player_death_message(player) {
         return `Player ${player.id} has died at ${this.map.locations[player.location].name}. The beast tunnels forward!`;
     }
