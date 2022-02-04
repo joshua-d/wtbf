@@ -1,6 +1,6 @@
 import React from 'react';
 import RoomActions from './WebInterface/RoomActions.js'
-import { IsGameStartedChecker } from './WebInterface/Checkers';
+import GameActions from './WebInterface/GameActions.js';
 
 class Home extends React.Component {
     render() {
@@ -18,9 +18,7 @@ class Home extends React.Component {
         super(props);
         this.state = {
             room_id: null,
-            conn_id: null,
-
-            igs_checker: null
+            conn_id: null
         };
 
         this.create_room = this.create_room.bind(this);
@@ -35,6 +33,17 @@ class Home extends React.Component {
                 room_id: room_data.room_id,
                 conn_id: room_data.conn_id
             });
+
+            let react = this;
+            GameActions.check_for_game_started(room_data.conn_id, function(res, interval) {
+                if (res.data) {
+                    clearInterval(interval); //can't return true after page change, must clear manually
+                    react.props.changePage('Game', {conn_id: this.state.conn_id});
+                }
+                else {
+                    return false;
+                }
+            });
         }
     }
 
@@ -47,18 +56,23 @@ class Home extends React.Component {
                 conn_id: room_data.conn_id
             });
 
-            let igs_checker = new IsGameStartedChecker(this.state.conn_id, function(res) {
-                console.log(res);
-                return true;
+            let react = this;
+            GameActions.check_for_game_started(room_data.conn_id, function(res, interval) {
+                if (res.data) {
+                    clearInterval(interval); //can't return true after page change, must clear manually
+                    react.props.changePage('Game', {conn_id: this.state.conn_id});
+                }
+                else {
+                    return false;
+                }
             });
-            igs_checker.start();
         }
     }
 
     async start_game() {
         let game_data = await RoomActions.start_game(this.state.conn_id);
         if (game_data) {
-            this.props.changePage('Game', {d1: 'ur mom!'});
+            this.props.changePage('Game', {conn_id: this.state.conn_id});
         }
     }
 }

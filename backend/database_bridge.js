@@ -16,7 +16,7 @@ let next_game_id = 0;
 
 /* Rooms */
 
-function generate_room_id() {
+function _generate_room_id() {
     let room_id;
     let room_exists = false;
     do {
@@ -37,14 +37,14 @@ function generate_room_id() {
     return room_id;
 }
 
-function generate_connection_id() {
-    return next_conn_id++;
+function _generate_connection_id() {
+    return String(next_conn_id++);
 }
 
 /* Returns a room id & conn id for the user who created the room */
 function create_room() {
-    let room_id = generate_room_id();
-    let conn_id = generate_connection_id();
+    let room_id = _generate_room_id();
+    let conn_id = _generate_connection_id();
 
     rooms.push({id: room_id, players: [conn_id]});
 
@@ -58,7 +58,7 @@ function create_room() {
 
 /* Returns a room id & conn id if the user successfully joined the room */
 function join_room(room_id) {
-    let conn_id = generate_connection_id();
+    let conn_id = _generate_connection_id();
     for (let room of rooms) {
         if (room.id === room_id) {
             room.players.push(conn_id);
@@ -74,7 +74,7 @@ function join_room(room_id) {
 
 /* Game */
 
-function get_game_id() {
+function _get_game_id() {
     return next_game_id++;
 }
 
@@ -82,7 +82,7 @@ function get_game_id() {
 function start_game(conn_id) {
     for (let room of rooms) {
         if (room.players.includes(conn_id)) {
-            let game = new Game(get_game_id(), room.players.length);
+            let game = new Game(_get_game_id(), room.players.length);
             for (let player_id = 0; player_id < room.players.length; player_id++) {
                 let player = room.players[player_id];
                 game_by_conn_id[player] = game;
@@ -96,20 +96,28 @@ function start_game(conn_id) {
     return false;
 }
 
-function get_player_id(conn_id) {
+function check_if_game_started(conn_id) {
+    return conn_id in game_by_conn_id;
+}
+
+function _get_player_id(conn_id) {
     return player_id_by_conn_id[conn_id];
 }
 
 function get_game_state(conn_id) {
     let game = game_by_conn_id[conn_id];
-
+    let game_state = game.get_full_state();
+    game_state.your_id = _get_player_id(conn_id);
+    return game_state
 }
-
 
 
 //This should pretty much remain the same when the real database is connected
 module.exports = {
-    create_room: create_room,
-    join_room: join_room,
-    start_game, start_game
+    create_room,
+    join_room,
+    start_game,
+
+    check_if_game_started,
+    get_game_state
 };

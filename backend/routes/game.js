@@ -16,9 +16,12 @@ router.post('/start-game', function(req, res) {
 });
 
 router.get('/is-game-started', function(req, res) {
-    let params = req.query;
-    console.log(params);
-    res.send({status: 'success'});
+    //TODO sanitize req.query.conn_id (and in other handlers)
+    res.send({status: 'success', data: database.check_if_game_started(req.query.conn_id)});
+});
+
+router.get('/initial-game-state', function(req, res) {
+    res.send({status: 'success', data: database.get_game_state(req.query.conn_id)});
 });
 
 

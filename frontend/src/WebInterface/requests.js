@@ -11,7 +11,7 @@ function request(url, method='GET', data=null) {
     return $.ajax(options)
             .catch(function(err) {
                 return {
-                    status: 'failure',
+                    status: 'error',
                     code: err.status
                 };
             });

@@ -492,6 +492,7 @@ class Game {
             let location = {};
             Object.assign(location, this.map.locations[loc_id]);
             location.info = this.visible_infos[loc_id];
+            state.locations.push(location);
         }
 
         return state;
