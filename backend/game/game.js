@@ -158,6 +158,7 @@ class Game {
     _init_players(player_amt) {
         for (let player_id = 0; player_id < player_amt; player_id++) {
             this.players.push(new Player(player_id, this.player_start));
+            this.map.locations[this.player_start].visited = true;
         }
     }
 
@@ -478,7 +479,8 @@ class Game {
     get_full_state() {
         let state = {
             players: [],
-            locations: []
+            locations: [],
+            player_start: this.player_start
         };
 
         for (let player of this.players) {

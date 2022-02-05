@@ -108,6 +108,7 @@ function get_game_state(conn_id) {
     let game = game_by_conn_id[conn_id];
     let game_state = game.get_full_state();
     game_state.your_id = _get_player_id(conn_id);
+    game_state.your_loc = game_state.players[game_state.your_id].location;
     return game_state
 }
 

@@ -8,8 +8,8 @@ function check_for_game_started(conn_id, callback) {
 }
 
 async function get_initial_game_state(conn_id) {
-    let game_state = await reqs.request(`/game/initial-game-state?conn_id=${conn_id}`);
-    return game_state;
+    let res = await reqs.request(`/game/initial-game-state?conn_id=${conn_id}`);
+    return res.data;
 }
 
 

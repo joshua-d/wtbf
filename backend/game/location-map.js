@@ -52,6 +52,7 @@ class LocationMap {
 
             location.id = i;
             location.position = this.node_map.nodes[i].position;
+            location.visited = false;
 
             this.locations.push(location);
         }

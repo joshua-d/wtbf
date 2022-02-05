@@ -3,8 +3,18 @@ import * as PIXI from 'pixi.js';
 
 import Location from './Location.js';
 
-let map_padding = 20;
+let map_padding = 200;
 let position_multiplier = 5;
+
+const loc_radius = 20;
+
+const player_colors = [0xff0000, 0x0099ff, 0x00ff00, 0xffff00, 0xff8800, 0x9900ff];
+const visited_location_color = 0x808080;
+const visible_location_color = 0xd1d1d1;
+const current_location_color = 0x000000;
+const starting_location_color = 0x00FFEE;
+const background_color = 0xffffff;
+const connection_line_color = 0xCECECE;
 
 class GameMap extends React.Component {
     render() {
@@ -31,7 +41,7 @@ class GameMap extends React.Component {
         this.init_pixi();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         if (this.props.shouldDraw) {
             this.adjustsPositions();
             this.adjustMapSize();
@@ -55,7 +65,7 @@ class GameMap extends React.Component {
     }
 
     adjustsPositions() {
-        let locations = this.props.locations;
+        let locations = this.props.game_state.locations;
 
         let leftmost = 0;
         let upmost = 0;
@@ -79,7 +89,7 @@ class GameMap extends React.Component {
     }
 
     adjustMapSize() {
-        let locations = this.props.locations;
+        let locations = this.props.game_state.locations;
         let elem = this.elem.current;
         
         let rightmost = 0;
@@ -104,31 +114,23 @@ class GameMap extends React.Component {
     }
     
     drawLocations() {
-        console.log('drawing');
         this.state.graphics.clear();
-        while(this.state.graphics.children[0]) { this.state.graphics.removeChild(this.state.graphics.children[0]); }
 
-        for (let loc of this.props.locations) {
-            this.state.graphics.beginFill(0x0000ff);
+        for (let loc of this.props.game_state.locations) {
+            let fill_color = visible_location_color;
 
-            if (this.props.beast_path.includes(loc.id))
-                this.state.graphics.beginFill(0x00ff00);
-            if (this.props.player_start === loc.id)
-                this.state.graphics.beginFill(0x000000);
-
-            this.state.graphics.drawCircle(loc.position.x, loc.position.y, 20);
-
-            if (this.props.beast_path.includes(loc.id)) {
-                let text_style = new PIXI.TextStyle({
-                    fontFamily: 'Lato',
-                    fontSize: 16,
-                    fill: 0x000000,
-                    align: 'center'
-                });
-                let location_text = new PIXI.Text(this.props.beast_path.indexOf(loc.id), text_style);
-                location_text.position = loc.position;
-                this.state.graphics.addChild(location_text)
+            if (loc.visited) {
+                fill_color = visited_location_color;
             }
+            if (loc.id === this.props.game_state.player_start) {
+                fill_color = starting_location_color;
+            }
+            if (loc.id === this.props.game_state.your_loc) {
+                fill_color = current_location_color;
+            }
+
+            this.state.graphics.beginFill(fill_color);
+            this.state.graphics.drawCircle(loc.position.x, loc.position.y, loc_radius);
         }
     }
 }
