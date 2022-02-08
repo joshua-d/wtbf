@@ -41,3 +41,18 @@
     width: 70px;
     height: 70px;
 }
+
+.control-panel {
+    position: fixed;
+    width: 100%;
+    bottom: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.cp-button {
+    height: 60px;
+    width: 95px;
+    margin-left: 5px !important;
+    margin-right: 5px !important;
+}

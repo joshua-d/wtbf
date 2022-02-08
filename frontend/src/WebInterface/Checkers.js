@@ -1,5 +1,5 @@
 import reqs from "./requests";
-
+// TODO could make objs of the Checker class directly instead of extending - in GameActions, make Checker
 
 class Checker {
     /* interval_fn must return a Promise
@@ -41,7 +41,7 @@ class Checker {
                             let should_stop = checker.on_response(res, checker.interval);
                             if (should_stop)
                                 clearInterval(checker.interval);
-                            promise_done = true;
+                            promise_done = true; //TODO maybe remove this?
                         }
                     });
             }
@@ -74,6 +74,20 @@ class IsGameStartedChecker extends Checker {
 
 
 
+class GetNextStateChecker extends Checker {
+    constructor(conn_id, callback) {
+        super(function(conn_id) {
+            return reqs.request(`/game/next-state?conn_id=${conn_id}`);
+        },
+        conn_id,
+        callback,
+        2000);
+    }
+}
+
+
+
 export {
-    IsGameStartedChecker
+    IsGameStartedChecker,
+    GetNextStateChecker
 }

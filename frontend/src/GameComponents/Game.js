@@ -1,6 +1,7 @@
 import React from 'react';
 import GameMap from './GameMap.js';
-import GameActions from "../WebInterface/GameActions";
+import ControlPanel from './ControlPanel.js';
+import GameActions from "../WebInterface/GameActions.js";
 
 class Game extends React.Component {
     render() {
@@ -8,7 +9,10 @@ class Game extends React.Component {
             <GameMap
                 game_state={this.state.game_state}
                 shouldDraw={this.state.shouldDraw}
-                updateShouldDraw={this.updateShouldDraw}/>
+                updateShouldDraw={this.updateShouldDraw}
+            />
+
+            <ControlPanel/>
         </div>
     }
 

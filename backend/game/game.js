@@ -98,6 +98,8 @@ class Game {
 
         this.new_info_locs = [];
 
+        this.messages = [];
+
         this._generate_map(player_amt);
         this._init_players(player_amt);
         this._init_infos();
@@ -412,7 +414,7 @@ class Game {
 
     /* Moves beast, assumes players have moved to their location for the start of this turn, updates state */
     do_turn() {
-        let messages = [];
+        this.messages = [];
 
         this._move_beast();
 
@@ -438,11 +440,11 @@ class Game {
                     //Player dies
                     player.die();
                     this._rampage_beast();
-                    messages.push(this._player_death_message(player));
+                    this.messages.push(this._player_death_message(player));
                 }
                 else {
                     //Player runs back to prev location
-                    messages.push(this._beast_encounter_message(player));
+                    this.messages.push(this._beast_encounter_message(player));
                     let player_loc = player.location;
                     player.location = player.prev_location;
                     player.prev_location = player_loc;
@@ -456,18 +458,17 @@ class Game {
             if (!player.dead) {
                 let loc_msgs = this._check_for_infos(player.location);
                 for (let msg of loc_msgs)
-                    messages.push(msg);
+                    this.messages.push(msg);
             }
         }
 
         this._update_visible_locations();
-
     }
 
     /* Returns locations mapped to their info objs of locations with newfound info (based on new_info_locs)
     *  Utility for efficient sending to FE
     */
-    get_info_updates() {
+    _get_info_updates() {
         let info_updates = {};
         for (let loc of this.new_info_locs) {
             info_updates[loc] = this.visible_infos[loc];
@@ -480,13 +481,15 @@ class Game {
         let state = {
             players: [],
             locations: [],
-            player_start: this.player_start
+            player_start: this.player_start,
+            messages: this.messages
         };
 
         for (let player of this.players) {
             state.players.push({
                 id: player.id,
-                location: player.location
+                location: player.location,
+                dead: player.dead
             });
         }
 
@@ -504,13 +507,15 @@ class Game {
     get_updated_state() {
         let state = {
             players: [],
-            info_updates: this.get_info_updates()
+            info_updates: this._get_info_updates(),
+            messages: this.messages
         };
 
         for (let player of this.players) {
             state.players.push({
                 id: player.id,
-                location: player.location
+                location: player.location,
+                dead: player.dead
             });
         }
 
