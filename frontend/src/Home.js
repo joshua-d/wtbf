@@ -38,7 +38,7 @@ class Home extends React.Component {
             GameActions.check_for_game_started(room_data.conn_id, function(res, interval) {
                 if (res.data) {
                     clearInterval(interval); //can't return true after page change, must clear manually
-                    react.props.changePage('Game', {conn_id: this.state.conn_id});
+                    react.props.changePage('Game', {conn_id: react.state.conn_id});
                 }
                 else {
                     return false;
@@ -60,7 +60,7 @@ class Home extends React.Component {
             GameActions.check_for_game_started(room_data.conn_id, function(res, interval) {
                 if (res.data) {
                     clearInterval(interval); //can't return true after page change, must clear manually
-                    react.props.changePage('Game', {conn_id: this.state.conn_id});
+                    react.props.changePage('Game', {conn_id: react.state.conn_id});
                 }
                 else {
                     return false;
