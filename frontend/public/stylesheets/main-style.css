@@ -18,7 +18,26 @@
 }
 
 .location {
-    width: 100px;
-    height: 100px;
+    width: 300px;
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.info-bar {
+    height: 25px;
+    margin-bottom: 4px;
+}
+
+.loc-name {
+    font-family: Lato, serif;
+    font-size: 12px;
+    text-align: center;
+    height: 20px;
+}
+
+.click-box {
+    width: 70px;
+    height: 70px;
 }

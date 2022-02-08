@@ -17,8 +17,9 @@ class Game extends React.Component {
 
         this.state = {
             conn_id: this.props.pageData.conn_id,
-            game_state: {},
-
+            game_state: {
+                locations: []
+            },
             shouldDraw: false
         };
 
