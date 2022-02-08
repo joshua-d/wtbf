@@ -46,6 +46,9 @@
     position: fixed;
     width: 100%;
     bottom: 30px;
+}
+
+.cp-btn-bar {
     display: flex;
     justify-content: center;
 }
@@ -55,4 +58,22 @@
     width: 95px;
     margin-left: 5px !important;
     margin-right: 5px !important;
+}
+
+.msg-window {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 33%;
+}
+
+.msg-txt {
+    font-family: Lato, serif;
+    font-size: 14px;
+}
+
+.cp-msg-txt {
+    font-family: Lato, serif;
+    font-size: 14px;
+    text-align: center;
 }

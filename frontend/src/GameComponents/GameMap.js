@@ -24,6 +24,7 @@ class GameMap extends React.Component {
                 <Location
                     location={loc}
                     canvas_position={this.state.canvas_positions[loc.id]}
+                    locClick={this.props.locClick}
                 />
             )
         }

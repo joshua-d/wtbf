@@ -11,7 +11,9 @@ class Location extends React.Component {
         return <div ref={this.loc_elem} className="location">
             <InfoBar info={this.props.location.info}/>
             <div className="loc-name">{this.props.location.name}</div>
-            <div className="click-box"></div>
+            <div className="click-box" onClick={() => this.props.locClick(this.props.location.id)}>
+
+            </div>
         </div>
     }
 
