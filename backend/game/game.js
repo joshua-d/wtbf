@@ -257,7 +257,7 @@ class Game {
             let prev_loc_ind = this.beast.path_index - 1;
             if (prev_loc_ind === -1)
                 prev_loc_ind = this.beast.path.length - 1;
-            let prev_loc = this.beast.path(prev_loc_ind);
+            let prev_loc = this.beast.path[prev_loc_ind];
             let new_trace = {
                 from: prev_loc,
                 day_found: null
@@ -375,6 +375,7 @@ class Game {
         let player = this.players[id];
         player.prev_location = player.location;
         player.location = location;
+        this.map.locations[location].visited = true;
     }
 
 

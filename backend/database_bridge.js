@@ -159,11 +159,12 @@ function move_player(conn_id, loc_id) {
     // Again, in 'prod' would have to check if there is already an action for this player in case they tomfool the FE
     if (!game_data.performing_turn && game.can_move(player_id, loc_id)) {
         game_data.action_queue.push({
-            action: 'move',
+            type: 'move',
             player_id: player_id,
             loc_id: loc_id
         });
         _check_for_turn_ready(game);
+        console.log(`player ${player_id} moved to ${loc_id}`);
         return true;
     }
 
@@ -181,6 +182,7 @@ function stay_player(conn_id) {
             player_id: player_id
         });
         _check_for_turn_ready(game);
+        console.log(`player ${player_id} stayed`);
         return true;
     }
 
@@ -197,6 +199,7 @@ function cancel_action(conn_id) {
         for (let action of game_data.action_queue) {
             if (action.player_id === player_id) {
                 game_data.action_queue.splice(game_data.action_queue.indexOf(action), 1);
+                console.log(`player ${player_id} canceled action`);
                 return true;
             }
         }

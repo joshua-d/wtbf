@@ -5,7 +5,7 @@ class ControlPanel extends React.Component {
     render() {
 
         let btns = [];
-        if (!this.props.listening_for_loc_click && !this.props.confirming) {
+        if (!this.props.listening_for_loc_click && !this.props.confirming && !this.props.action_set) {
             btns.push(<button className="ui button cp-button" onClick={this.move}>Move</button>);
             btns.push(<button className="ui button cp-button" onClick={this.stay}>Stay</button>);
             if (this.state.can_ambush) {
@@ -16,11 +16,11 @@ class ControlPanel extends React.Component {
             }
         }
         if (this.props.confirming) {
-            btns.push(<button className="ui button cp-button" onClick={this.props.confirm_action}>Yes</button>);
-            btns.push(<button className="ui button cp-button" onClick={this.props.cancel_action}>No</button>);
+            btns.push(<button className="ui button cp-button" onClick={this.props.confirm_fn}>Yes</button>);
+            btns.push(<button className="ui button cp-button" onClick={this.props.cancel_fn}>No</button>);
         }
-        if (this.props.listening_for_loc_click) {
-            btns.push(<button className="ui button cp-button" onClick={this.props.cancel_action}>Cancel</button>)
+        if (this.props.listening_for_loc_click || this.props.action_set) {
+            btns.push(<button className="ui button cp-button" onClick={this.props.cancel_fn}>Cancel</button>)
         }
 
         return <div className="control-panel">

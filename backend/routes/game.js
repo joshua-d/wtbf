@@ -26,7 +26,7 @@ router.get('/initial-game-state', function(req, res) {
 
 router.post('/move-player', function(req, res) {
     //TODO tomfoolery may include req.body not being filled correctly, may break things like this
-    let moved = database.move_player(req.body.conn_id, req.body.loc_id);
+    let moved = database.move_player(req.body.conn_id, parseInt(req.body.loc_id));
     if (moved)
         res.send({status: 'success'});
     else

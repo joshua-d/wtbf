@@ -16,7 +16,7 @@ class Checker {
     async check() {
         let res = await this.interval_fn(this.args);
         if (reqs.successful(res)) {
-            return this.on_response(res);
+            return this.on_response(res.data);
         }
         console.log('Checkers: unsuccessful response');
         return null;
@@ -38,7 +38,7 @@ class Checker {
                             console.log('Checkers: unsuccessful response, stopping');
                         }
                         else {
-                            let should_stop = checker.on_response(res, checker.interval);
+                            let should_stop = checker.on_response(res.data, checker.interval);
                             if (should_stop)
                                 clearInterval(checker.interval);
                             promise_done = true; //TODO maybe remove this?

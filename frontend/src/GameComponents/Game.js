@@ -19,8 +19,9 @@ class Game extends React.Component {
                 cpClick={this.cpClick}
                 listening_for_loc_click={this.state.listening_for_loc_click}
                 confirming={this.state.confirming}
-                confirm_action={this.state.confirm_action}
-                cancel_action={this.cancel}
+                confirm_fn={this.state.confirm_fn}
+                cancel_fn={this.state.cancel_fn}
+                action_set={this.state.action_set}
                 msg={this.state.cp_msg}
             />
 
@@ -43,7 +44,9 @@ class Game extends React.Component {
             shouldDraw: false,
             listening_for_loc_click: false,
             confirming: false,
-            confirm_action: null,
+            confirm_fn: null,
+            cancel_fn: null,
+            action_set: false,
             cp_msg: ''
         };
 
@@ -51,7 +54,8 @@ class Game extends React.Component {
         this.updateShouldDraw = this.updateShouldDraw.bind(this);
         this.locClick = this.locClick.bind(this);
         this.cpClick = this.cpClick.bind(this);
-        this.cancel = this.cancel.bind(this);
+        this.cancel_choice = this.cancel_choice.bind(this);
+        this.cancel_action = this.cancel_action.bind(this);
 
         // TODO move this into mount?
         let react = this;
@@ -86,7 +90,8 @@ class Game extends React.Component {
                 this.setState({
                     listening_for_loc_click: false,
                     confirming: true,
-                    confirm_action: () => react.move(loc_id),
+                    confirm_fn: () => react.move(loc_id),
+                    cancel_fn: react.cancel_choice,
                     cp_msg: `Are you sure you'd like to move to the ${move_loc.name}?`
                 });
             }
@@ -107,22 +112,80 @@ class Game extends React.Component {
             let react = this;
             this.setState({
                 confirming: true,
-                confirm_action: () => react.stay(),
+                confirm_fn: () => react.stay(your_loc.id),
+                cancel_fn: react.cancel_choice,
                 cp_msg: `Are you sure you'd like to stay at the ${your_loc.name}?`
             });
         }
     }
 
     move(loc_id) {
-        console.log('moved!');
+        let loc = this.getLocationById(loc_id);
+        this.setState({
+            confirming: false,
+            action_set: true,
+            cancel_fn: this.cancel_action,
+            cp_msg: `Moving to ${loc.name} tomorrow.`
+        });
+
+        GameActions.move(this.state.conn_id, loc_id);
+
+        //TODO duplicated - consider moving into a fn
+        let react = this;
+        GameActions.get_next_state(this.state.conn_id, function(game_state) {
+            console.log(game_state);
+            if (game_state !== null) {
+                react.setState({
+                    game_state: game_state,
+                    shouldDraw: true,
+                    action_set: false,
+                    cp_msg: ''
+                });
+                return true;
+            }
+            return false;
+        });
     }
 
-    stay() {
-        console.log('stayed!');
+    stay(loc_id) {
+        let loc = this.getLocationById(loc_id);
+        this.setState({
+            confirming: false,
+            action_set: true,
+            cancel_fn: this.cancel_action,
+            cp_msg: `Staying at ${loc.name} until tomorrow`
+        });
+
+        GameActions.stay(this.state.conn_id);
+
+        let react = this;
+        GameActions.get_next_state(this.state.conn_id, function(game_state) {
+            console.log(game_state);
+            if (game_state !== null) {
+                react.setState({
+                    game_state: game_state,
+                    shouldDraw: true,
+                    action_set: false,
+                    cp_msg: ''
+                });
+                return true;
+            }
+            return false;
+        });
     }
 
-    cancel() {
+    cancel_choice() {
         this.setState({listening_for_loc_click: false, confirming: false, cp_msg: ''});
+    }
+
+    async cancel_action() {
+        let action_canceled = await GameActions.cancel_action(this.state.conn_id);
+        if (action_canceled) {
+            this.setState({
+                action_set: false,
+                cp_msg: ''
+            });
+        }
     }
 
 }
