@@ -18,9 +18,18 @@ let next_game_id = 0;
 * action_queue: list of actions for each player as they come in
 * performing_turn: true if the game has turned and not all players have received the new state
 *
+* game_data_table[game.id] = {
+    action_queue: [],
+    performing_turn: false,
+    next_state_ready: false,
+    num_players_received_state: 0,
+    votes: {}
+}
+*
 * {
 *   action_queue: [ { type: 'move'/'stay', player_id, ?loc_id } ]
 *   performing_turn: boolean
+*   votes: { loc_id: [ player_id ] }
 * }
 * */
 let game_data_table = {};
@@ -103,7 +112,8 @@ function start_game(conn_id) {
                     action_queue: [],
                     performing_turn: false,
                     next_state_ready: false,
-                    num_players_received_state: 0 // TODO a counter is used to check if all players have received the state - susceptible to tomfoolery
+                    num_players_received_state: 0, // TODO a counter is used to check if all players have received the state - susceptible to tomfoolery
+                    votes: {}
                 };
             }
             games.push(game);
@@ -134,7 +144,13 @@ function get_game_state(conn_id) {
 *  If they have, turn is done, game_data.state is set and next_state_ready flag set to true */
 function _check_for_turn_ready(game) {
     let game_data = game_data_table[game.id];
-    if (game_data.action_queue.length === game.players.length) {
+
+    if (game.trapping || game.ambushing) {
+        game_data.performing_turn = true;
+        game.do_turn();
+        game_data.next_state_ready = true;
+    }
+    else if (game_data.action_queue.length === game.players.length) {
 
         // All actions in, process the queue and do the turn
         game_data.performing_turn = true;
@@ -229,6 +245,59 @@ function check_for_next_state(conn_id) {
 }
 
 
+function vote(conn_id, loc_id) {
+    let game = game_by_conn_id[conn_id];
+    let player_id = player_id_by_conn_id[conn_id];
+    let game_data = game_data_table[game.id];
+
+    if (game.can_ambush(loc_id)) {
+        // Remove this player's current vote
+        for (let loc in game_data.votes) {
+            let loc_votes = game_data.votes[loc];
+            if (loc_votes.includes(player_id)) {
+                loc_votes.splice(loc_votes.indexOf(player_id), 1);
+            }
+        }
+
+        if (loc_id in game_data.votes) {
+            game_data.votes[loc_id].push(player_id);
+        }
+        else {
+            game_data.votes[loc_id] = [player_id];
+        }
+        console.log(`player ${player_id} voted for ${loc_id}`);
+
+        if (game_data.votes[loc_id].length > Math.floor(game.players.length / 2)) {
+            // Vote for this loc went through
+            game.ambush(loc_id);
+            _check_for_turn_ready(game);
+        }
+
+        return true;
+    }
+    else {
+        //tomfoolery
+        return false;
+    }
+}
+
+function cancel_vote(conn_id) {
+    let game = game_by_conn_id[conn_id];
+    let player_id = player_id_by_conn_id[conn_id];
+    let game_data = game_data_table[game.id];
+
+    for (let loc in game_data.votes) {
+        let loc_votes = game_data.votes[loc];
+        if (loc_votes.includes(player_id)) {
+            loc_votes.splice(loc_votes.indexOf(player_id), 1);
+        }
+    }
+
+    console.log(`player ${player_id} canceled vote`);
+    return true;
+}
+
+
 //This should pretty much remain the same when the real database is connected
 module.exports = {
     create_room,
@@ -242,5 +311,8 @@ module.exports = {
     stay_player,
     cancel_action,
 
-    check_for_next_state
+    check_for_next_state,
+
+    vote,
+    cancel_vote
 };

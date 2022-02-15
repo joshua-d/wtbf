@@ -95,6 +95,7 @@ class Game {
         this.infos = {};
         this.visible_infos = {};
         this.num_info_locs = 0;
+        this.game_over = false;
 
         this.new_info_locs = [];
 
@@ -424,11 +425,15 @@ class Game {
             if (this.beast.location === this.trap_location) {
                 //Win
                 console.log('win');
+                this.messages.push('You won!');
+                this.game_over = true;
                 return;
             }
             else {
                 //Fucking lose
                 console.log('lose');
+                this.messages.push('You lost!');
+                this.game_over = true;
                 return;
             }
         }
@@ -483,7 +488,8 @@ class Game {
             players: [],
             locations: [],
             player_start: this.player_start,
-            messages: this.messages
+            messages: this.messages,
+            game_over: this.game_over
         };
 
         for (let player of this.players) {

@@ -32,6 +32,16 @@ function get_next_state(conn_id, callback) {
     checker.start();
 }
 
+async function vote(conn_id, loc_id) {
+    let res = await reqs.request('/game/vote', 'POST', {conn_id: conn_id, loc_id: loc_id});
+    return reqs.successful(res);
+}
+
+async function cancel_vote(conn_id) {
+    let res = await reqs.request('/game/cancel-vote', 'POST', {conn_id: conn_id});
+    return reqs.successful(res);
+}
+
 
 export default {
     check_for_game_started,
@@ -41,5 +51,8 @@ export default {
     stay,
     cancel_action,
 
-    get_next_state
+    get_next_state,
+
+    vote,
+    cancel_vote
 }

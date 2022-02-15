@@ -48,4 +48,14 @@ router.get('/next-state', function(req, res) {
     res.send({status: 'success', data: next_state});
 });
 
+router.post('/vote', function(req, res) {
+    database.vote(req.body.conn_id, parseInt(req.body.loc_id));
+    res.send({status: 'success'});
+});
+
+router.post('/cancel-vote', function(req, res) {
+    database.cancel_vote(req.body.conn_id);
+    res.send({status: 'success'});
+});
+
 module.exports = router;

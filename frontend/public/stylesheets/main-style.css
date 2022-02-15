@@ -44,7 +44,8 @@
 
 .control-panel {
     position: fixed;
-    width: 100%;
+    width: 20%;
+    left: 40%;
     bottom: 30px;
 }
 
