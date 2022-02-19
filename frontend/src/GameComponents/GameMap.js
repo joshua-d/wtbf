@@ -8,11 +8,10 @@ let position_multiplier = 10;
 
 const loc_radius = 30;
 
-const player_colors = [0xff0000, 0x0099ff, 0x00ff00, 0xffff00, 0xff8800, 0x9900ff];
+const player_colors = [0xff0000, 0x0099ff, 0x00ff00, 0xffff00, 0xff8800, 0x9900ff]; //duplicated in PlayerDisplay.js and VoteBlock.js
 const visited_location_color = 0x808080;
 const visible_location_color = 0xd1d1d1;
-const current_location_color = 0x000000;
-const starting_location_color = 0x00FFEE;
+const starting_location_color = 0x000000;
 const background_color = 0xffffff;
 const connection_line_color = 0xCECECE;
 
@@ -20,11 +19,17 @@ class GameMap extends React.Component {
     render() {
         let loc_comps = [];
         for (let loc of this.props.game_state.locations) {
+            let players_here = [];
+            for (let player of this.props.game_state.players) {
+                if (player.id !== this.props.game_state.your_id && player.location === loc.id)
+                    players_here.push(player.id);
+            }
             loc_comps.push(
                 <Location
                     location={loc}
                     canvas_position={this.state.canvas_positions[loc.id]}
                     locClick={this.props.locClick}
+                    players_here={players_here}
                 />
             )
         }
@@ -184,7 +189,7 @@ class GameMap extends React.Component {
                 fill_color = starting_location_color;
             }
             if (loc.id === this.props.game_state.your_loc) {
-                fill_color = current_location_color;
+                fill_color = player_colors[this.props.game_state.your_id];
             }
 
             this.state.graphics.beginFill(fill_color);

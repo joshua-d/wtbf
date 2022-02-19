@@ -1,5 +1,6 @@
 import React from "react";
 import InfoBar from './InfoBar.js'
+import PlayerDisplay from "./PlayerDisplay";
 
 let infobar_height = 27;
 let name_height = 20;
@@ -11,9 +12,8 @@ class Location extends React.Component {
         return <div ref={this.loc_elem} className="location">
             <InfoBar info={this.props.location.info}/>
             <div className="loc-name">{this.props.location.name}</div>
-            <div className="click-box" onClick={() => this.props.locClick(this.props.location.id)}>
-
-            </div>
+            <div className="click-box" onClick={() => this.props.locClick(this.props.location.id)} />
+            <PlayerDisplay players_here={this.props.players_here}/>
         </div>
     }
 
