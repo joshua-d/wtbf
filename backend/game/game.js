@@ -377,7 +377,6 @@ class Game {
         let player = this.players[id];
         player.prev_location = player.location;
         player.location = location;
-        this.map.locations[location].visited = true;
     }
 
 
@@ -457,6 +456,9 @@ class Game {
                     player.prev_location = player_loc;
                 }
             }
+            else if (!player.dead) {
+                this.map.locations[player.location].visited = true;
+            }
         }
 
         // Check for infos
@@ -511,6 +513,9 @@ class Game {
             let location = {};
             Object.assign(location, this.map.locations[loc_id]);
             location.info = this.visible_infos[loc_id];
+            if (this.visible_infos[loc_id].info_present) {
+                console.log(this.visible_infos[loc_id]);
+            }
             state.locations.push(location);
         }
 

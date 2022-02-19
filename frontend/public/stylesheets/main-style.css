@@ -98,6 +98,7 @@
 .info-bar {
     margin-bottom: 4px;
     display: flex;
+    min-height: 25px;
 }
 
 .aged-block {
@@ -107,7 +108,7 @@
 .age-txt {
     display: flex;
     align-items: center;
-    margin-left: 1px;
+    margin-left: 4px;
 }
 
 .info-block {

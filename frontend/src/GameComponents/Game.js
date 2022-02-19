@@ -73,6 +73,7 @@ class Game extends React.Component {
         this.cancel_choice = this.cancel_choice.bind(this);
         this.cancel_action = this.cancel_action.bind(this);
         this.cancel_vote = this.cancel_vote.bind(this);
+        this.get_next_state = this.get_next_state.bind(this);
 
         // TODO move these into mount?
         let react = this;
@@ -84,7 +85,7 @@ class Game extends React.Component {
 
         GameActions.check_for_votes(this.state.conn_id, function(votes) {
             let state_votes = [];
-            console.log(votes);
+            //console.log(votes);
             for (let vote of votes) {
                 if (react.can_trap() && vote.loc_id === react.state.game_state.your_loc) {
                     state_votes.push({
@@ -101,7 +102,8 @@ class Game extends React.Component {
                     });
                 }
             }
-            react.setState({votes: state_votes});
+            if (react.state.votes.length !== 0 || state_votes.length !== 0)
+                react.setState({votes: state_votes});
             return false;
         });
 
@@ -212,21 +214,7 @@ class Game extends React.Component {
 
         GameActions.move(this.state.conn_id, loc_id);
 
-        //TODO duplicated - consider moving into a fn
-        let react = this;
-        GameActions.get_next_state(this.state.conn_id, function(game_state) {
-            console.log(game_state);
-            if (game_state !== null) {
-                react.setState({
-                    game_state: game_state,
-                    shouldDraw: true,
-                    action_set: false,
-                    cp_msg: ''
-                });
-                return true;
-            }
-            return false;
-        });
+        this.get_next_state();
     }
 
     stay(loc_id) {
@@ -240,26 +228,13 @@ class Game extends React.Component {
 
         GameActions.stay(this.state.conn_id);
 
-        let react = this;
-        GameActions.get_next_state(this.state.conn_id, function(game_state) {
-            console.log(game_state);
-            if (game_state !== null) {
-                react.setState({
-                    game_state: game_state,
-                    shouldDraw: true,
-                    action_set: false,
-                    cp_msg: ''
-                });
-                return true;
-            }
-            return false;
-        });
+        this.get_next_state();
     }
 
     /* Assumes loc_id has already been verified as valid ambush loc in locClick */
     ambush(loc_id, trap) {
         let loc = this.getLocationById(loc_id);
-        let msg = `You voted to  ${loc.name} tomorrow.`;
+        let msg = `You voted to ambush ${loc.name} tomorrow.`;
         if (trap) {
             msg = `You voted to trap at ${loc.name} tomorrow.`;
         }
@@ -273,19 +248,8 @@ class Game extends React.Component {
 
         GameActions.vote(this.state.conn_id, loc_id);
 
-        let react = this;
-        GameActions.get_next_state(this.state.conn_id, function(game_state) {
-            console.log(game_state);
-            if (game_state !== null) {
-                react.setState({
-                    game_state: game_state,
-                    shouldDraw: false,
-                    cp_msg: ''
-                });
-                return true;
-            }
-            return false;
-        });
+        // TODO may not want to set action_set to false in callback
+        this.get_next_state();
     }
 
     cancel_choice() {
@@ -355,6 +319,23 @@ class Game extends React.Component {
             }
         }
         return true;
+    }
+
+    get_next_state() {
+        let react = this;
+        GameActions.get_next_state(this.state.conn_id, function(game_state) {
+            if (game_state !== null) {
+                console.log(game_state);
+                react.setState({
+                    game_state: game_state,
+                    shouldDraw: true,
+                    action_set: false,
+                    cp_msg: ''
+                });
+                return true;
+            }
+            return false;
+        });
     }
 
 }

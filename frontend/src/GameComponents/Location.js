@@ -19,15 +19,11 @@ class Location extends React.Component {
             {info_bar_spacer}
 
             <div onMouseEnter={this.showDayFound} onMouseLeave={this.hideDayFound}>
-                <InfoBar info={{
-                    aged_footprints: [{day_found: 4, day_made: 1}, {day_found: 6, day_made: 2}],
-                    footprints: [{day_found: 12}, {day_found: 14}],
-                    traces: [{day_found: 4}],
-                    aged_markings: [{day_found: 14, day_made: 2}],
-                    markings: [{day_found: 6}]
-                }}
-                 canvas_positions={this.props.canvas_positions}
-                 day_found_shown={this.state.day_found_shown}
+                <InfoBar
+                    info={this.props.location.info}
+                    canvas_positions={this.props.canvas_positions}
+                    loc_id={this.props.location.id}
+                    day_found_shown={this.state.day_found_shown}
                 />
             </div>
 
@@ -64,12 +60,10 @@ class Location extends React.Component {
 
     showDayFound() {
         this.setState({day_found_shown: true});
-        console.log('show')
     }
 
     hideDayFound() {
         this.setState({day_found_shown: false});
-        console.log('hide')
     }
 
 }
