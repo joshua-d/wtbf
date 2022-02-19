@@ -58,4 +58,12 @@ router.post('/cancel-vote', function(req, res) {
     res.send({status: 'success'});
 });
 
+router.get('/votes', function(req, res) {
+    let votes = database.get_votes(req.query.conn_id);
+    res.send({
+        status: 'success',
+        data: votes
+    });
+});
+
 module.exports = router;

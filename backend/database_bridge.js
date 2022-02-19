@@ -160,6 +160,7 @@ function _check_for_turn_ready(game) {
             }
         }
         game_data.action_queue = [];
+        game_data.votes = {};
 
         game.do_turn();
         game_data.next_state_ready = true;
@@ -297,6 +298,23 @@ function cancel_vote(conn_id) {
     return true;
 }
 
+function get_votes(conn_id) {
+    let game = game_by_conn_id[conn_id];
+    let game_data = game_data_table[game.id];
+
+    let votes = [];
+
+    for (let loc_id in game_data.votes) {
+        if (game_data.votes[loc_id].length > 0) {
+            for (let player_id of game_data.votes[loc_id]) {
+                votes.push({player_id, player_id, loc_id: parseInt(loc_id)});
+            }
+        }
+    }
+
+    return votes;
+}
+
 
 //This should pretty much remain the same when the real database is connected
 module.exports = {
@@ -314,5 +332,6 @@ module.exports = {
     check_for_next_state,
 
     vote,
-    cancel_vote
+    cancel_vote,
+    get_votes
 };

@@ -86,8 +86,21 @@ class GetNextStateChecker extends Checker {
 }
 
 
+class VotesChecker extends Checker {
+    constructor(conn_id, callback) {
+        super(function(conn_id) {
+            return reqs.request(`/game/votes?conn_id=${conn_id}`);
+        },
+        conn_id,
+        callback,
+        5000);
+    }
+}
+
+
 
 export {
     IsGameStartedChecker,
-    GetNextStateChecker
+    GetNextStateChecker,
+    VotesChecker
 }

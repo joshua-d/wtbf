@@ -37,10 +37,7 @@ class Game extends React.Component {
             />
 
             <VotingWindow
-                votes={[
-                    {player_id: 0, vote_action: 'trap at', loc_name: 'ur mom'},
-                    {player_id: 1, vote_action: 'ambush', loc_name: 'ur mom 2'}
-                ]}
+                votes={this.state.votes}
             />
         </div>
     }
@@ -63,7 +60,9 @@ class Game extends React.Component {
             confirm_fn: null,
             cancel_fn: null,
             action_set: false,
-            cp_msg: ''
+            cp_msg: '',
+
+            votes: []
         };
 
         this.getLocationById = this.getLocationById.bind(this);
@@ -75,13 +74,37 @@ class Game extends React.Component {
         this.cancel_action = this.cancel_action.bind(this);
         this.cancel_vote = this.cancel_vote.bind(this);
 
-        // TODO move this into mount?
+        // TODO move these into mount?
         let react = this;
         GameActions.get_initial_game_state(this.state.conn_id)
             .then(function(game_state) {
                 react.setState({game_state: game_state, shouldDraw: true});
                 console.log(game_state)
             });
+
+        GameActions.check_for_votes(this.state.conn_id, function(votes) {
+            let state_votes = [];
+            console.log(votes);
+            for (let vote of votes) {
+                if (react.can_trap() && vote.loc_id === react.state.game_state.your_loc) {
+                    state_votes.push({
+                        player_id: vote.player_id,
+                        vote_action: 'trap at',
+                        loc_name: react.getLocationById(vote.loc_id).name
+                    });
+                }
+                else {
+                    state_votes.push({
+                        player_id: vote.player_id,
+                        vote_action: 'ambush',
+                        loc_name: react.getLocationById(vote.loc_id).name
+                    });
+                }
+            }
+            react.setState({votes: state_votes});
+            return false;
+        });
+
     }
 
     getLocationById(id) {

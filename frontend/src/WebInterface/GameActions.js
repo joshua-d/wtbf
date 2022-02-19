@@ -1,5 +1,5 @@
 import reqs from "./requests.js";
-import { IsGameStartedChecker, GetNextStateChecker } from './Checkers.js';
+import { IsGameStartedChecker, GetNextStateChecker, VotesChecker } from './Checkers.js';
 
 
 function check_for_game_started(conn_id, callback) {
@@ -42,6 +42,11 @@ async function cancel_vote(conn_id) {
     return reqs.successful(res);
 }
 
+function check_for_votes(conn_id, callback) {
+    let checker = new VotesChecker(conn_id, callback);
+    checker.start();
+}
+
 
 export default {
     check_for_game_started,
@@ -54,5 +59,6 @@ export default {
     get_next_state,
 
     vote,
-    cancel_vote
+    cancel_vote,
+    check_for_votes
 }
