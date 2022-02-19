@@ -14,7 +14,7 @@ class InfoBar extends React.Component {
                     <div className="info-block">
                         <div className="aged-block">
                             <img src={footprint_img} rotation={this.get_fp_rotation(fp)}/>
-                            <div className="age-txt">{fp.day_found - fp.day_made}</div>
+                            <div className="age-txt">{this.props.day - fp.day_made}</div>
                         </div>
                         <div className="day-found-txt">
                             {fp.day_found}
@@ -27,7 +27,7 @@ class InfoBar extends React.Component {
                     <div className="info-block">
                         <div className="aged-block">
                             <img src={footprint_img} rotation={this.get_fp_rotation(fp)}/>
-                            <div className="age-txt">{fp.day_found - fp.day_made}</div>
+                            <div className="age-txt">{this.props.day - fp.day_made}</div>
                         </div>
                     </div>
                 );
@@ -80,7 +80,7 @@ class InfoBar extends React.Component {
                     <div className="info-block">
                         <div className="aged-block">
                             <img src={marking_img}/>
-                            <div className="age-txt">{marking.day_found - marking.day_made}</div>
+                            <div className="age-txt">{this.props.day - marking.day_made}</div>
                         </div>
                         <div className="day-found-txt">
                             {marking.day_found}
@@ -93,7 +93,7 @@ class InfoBar extends React.Component {
                     <div className="info-block">
                         <div className="aged-block">
                             <img src={marking_img}/>
-                            <div className="age-txt">{marking.day_found - marking.day_made}</div>
+                            <div className="age-txt">{this.props.day - marking.day_made}</div>
                         </div>
                     </div>
                 );
@@ -147,19 +147,25 @@ class InfoBar extends React.Component {
     }
 
     get_fp_rotation(fp) {
+        if (!(fp.direction in this.props.canvas_positions)) // canvas positions has not been updated yet
+            return 0;
+
         let x = this.props.canvas_positions[this.props.loc_id].x - this.props.canvas_positions[fp.direction].x;
         let y = this.props.canvas_positions[this.props.loc_id].y - this.props.canvas_positions[fp.direction].y;
 
-        let rad = Math.PI + Math.atan2(y, x) + 180;
-        return (rad * 180 / Math.PI) % 360;
+        let rad = Math.PI + Math.atan2(y, x);
+        return Math.floor(rad * 180 / Math.PI) % 360;
     }
 
     get_trace_rotation(trace) {
-        let x = this.props.canvas_positions[this.props.loc_id].x - this.props.canvas_positions[trace.from].x;
-        let y = this.props.canvas_positions[this.props.loc_id].y - this.props.canvas_positions[trace.from].y;
+        if (!(trace.from in this.props.canvas_positions)) // canvas positions has not been updated yet
+            return 0;
 
-        let rad = Math.PI + Math.atan2(y, x) + 180;
-        return (rad * 180 / Math.PI) % 360;
+        let x = this.props.canvas_positions[trace.from].x - this.props.canvas_positions[this.props.loc_id].x;
+        let y = this.props.canvas_positions[trace.from].y - this.props.canvas_positions[this.props.loc_id].y;
+
+        let rad = Math.PI + Math.atan2(y, x);
+        return Math.floor(rad * 180 / Math.PI) % 360;
     }
 
 }

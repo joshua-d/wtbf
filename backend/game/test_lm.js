@@ -1,6 +1,11 @@
 let lm = require('./location-map');
 let Game = require('./game.js');
 
-let map = new lm(4);
+let game = new Game(0, 2);
 
-console.log(map.get_shortest_path(0, 25));
+game._generate_beast_info();
+console.log(game.infos[game.beast.location]);
+game._generate_beast_info();
+console.log(game.infos[game.beast.location]);
+game._generate_beast_info();
+console.log(game.infos[game.beast.location]);

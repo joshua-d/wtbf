@@ -24,6 +24,7 @@ class Location extends React.Component {
                     canvas_positions={this.props.canvas_positions}
                     loc_id={this.props.location.id}
                     day_found_shown={this.state.day_found_shown}
+                    day={this.props.day}
                 />
             </div>
 

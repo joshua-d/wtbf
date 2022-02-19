@@ -31,6 +31,7 @@ class GameMap extends React.Component {
                     locClick={this.props.locClick}
                     players_here={players_here}
                     canvas_positions={this.state.canvas_positions}
+                    day={this.props.game_state.day}
                 />
             )
         }

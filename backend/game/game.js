@@ -320,32 +320,39 @@ class Game {
     _check_for_infos(location) {
         // this func is a little bit menkis
         let loc_infos = this.infos[location];
-        let visible_loc_infos = this.visible_infos[location];
+        let info_present_already = this.visible_infos[location].info_present;
 
-        let info_present_already = visible_loc_infos.info_present;
-
-        if (!info_present_already) {
+        if (info_present_already) {
+            //Clear to prepare for copying
             this.visible_infos[location] = {
                 footprints: [],
                 aged_footprints: [],
                 traces: [],
                 markings: [],
                 aged_markings: [],
-                info_present: false
+                info_present: true
             };
         }
 
+        let visible_loc_infos = this.visible_infos[location];
+
         let messages = [];
 
+        // Copy infos from this.infos[loc] to this.visible_infos[loc]
         for (let info_key of Object.keys(loc_infos)) {
             for (let info of loc_infos[info_key]) {
                 visible_loc_infos[info_key].push(info);
+
                 if (info.day_found == null) {
+                    // This is a new info, add a msg and mark day found
                     messages.push(this._info_message(info_key, info, location));
                     info.day_found = this.day;
+
+                    //Util for marking which locs have new info
                     if (!this.new_info_locs.includes(location))
                         this.new_info_locs.push(location);
                 }
+
                 visible_loc_infos.info_present = true;
             }
         }
@@ -419,6 +426,8 @@ class Game {
         this.messages = [];
 
         this._move_beast();
+
+        ++this.day;
 
         // Check for win/lose if trapping
         if (this.ambushing || this.trapping) { //TODO prob could combine to one var trapping
@@ -498,7 +507,8 @@ class Game {
             locations: [],
             player_start: this.player_start,
             messages: this.messages,
-            game_over: this.game_over
+            game_over: this.game_over,
+            day: this.day
         };
 
         for (let player of this.players) {
@@ -513,9 +523,6 @@ class Game {
             let location = {};
             Object.assign(location, this.map.locations[loc_id]);
             location.info = this.visible_infos[loc_id];
-            if (this.visible_infos[loc_id].info_present) {
-                console.log(this.visible_infos[loc_id]);
-            }
             state.locations.push(location);
         }
 
@@ -551,7 +558,7 @@ class Game {
 
     _info_message(info_key, info, location) {
         if (info_key === 'aged_footprints') {
-            return `You found a new footprint at ${this.map.locations[location].name}! It is heading toward ${this.map.locations[info.direction].name}. It is ${this.day - info.day_found} days old.`
+            return `You found a new footprint at ${this.map.locations[location].name}! It is heading toward ${this.map.locations[info.direction].name}. It is ${this.day - info.day_made} days old.`
         }
         else if (info_key === 'footprints') {
             return `You found a new footprint at ${this.map.locations[location].name}! It is heading toward ${this.map.locations[info.direction].name}. You could not determine its age...`;
@@ -560,7 +567,7 @@ class Game {
             return `You found ${this.map.locations[info.from].trace} at ${this.map.locations[location].name}... The beast must have come from ${this.map.locations[info.from].name}!`;
         }
         else if (info_key === 'aged_markings') {
-            return `You found a new marking at ${this.map.locations[location].name}! It is ${this.day - info.day_found} days old.`
+            return `You found a new marking at ${this.map.locations[location].name}! It is ${this.day - info.day_made} days old.`
         }
         else if (info_key === 'markings') {
             return `You found a new marking at ${this.map.locations[location].name}! You could not determine its age.`
