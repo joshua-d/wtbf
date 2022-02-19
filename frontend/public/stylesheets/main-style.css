@@ -78,3 +78,11 @@
     font-size: 14px;
     text-align: center;
 }
+
+.voting-window {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 33%;
+    text-align: right;
+}

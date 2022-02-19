@@ -3,6 +3,7 @@ import GameMap from './GameMap.js';
 import ControlPanel from './ControlPanel.js';
 import GameActions from "../WebInterface/GameActions.js";
 import MessageWindow from "./MessageWindow";
+import VotingWindow from "./VotingWindow";
 
 //TODO consider stopping next game state checker on cancel action - return checker? or provide stop in interface
 
@@ -33,6 +34,13 @@ class Game extends React.Component {
 
             <MessageWindow
                 msgs={this.state.game_state.messages}
+            />
+
+            <VotingWindow
+                votes={[
+                    {player_id: 0, vote_action: 'trap at', loc_name: 'ur mom'},
+                    {player_id: 1, vote_action: 'ambush', loc_name: 'ur mom 2'}
+                ]}
             />
         </div>
     }
