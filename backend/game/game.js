@@ -95,6 +95,7 @@ class Game {
         this.infos = {};
         this.visible_infos = {};
         this.num_info_locs = 0;
+        this.can_die_anywhere = false;
         this.game_over = false;
 
         this.new_info_locs = [];
@@ -360,7 +361,7 @@ class Game {
     *  Can die if X infos have been found, or this location has info present
     */
     _can_die(location) {
-        return this.num_info_locs >= num_infos_before_death || this.visible_infos[location].info_present;
+        return this.can_die_anywhere || this.visible_infos[location].info_present;
     }
 
     /* Returns whether or not the player with id can move to location
@@ -469,6 +470,12 @@ class Game {
         }
 
         this._update_visible_locations();
+
+        //If can die anywhere is reached this turn, beast encounters have already been checked for - comes into effect next turn
+        if (!this.can_die_anywhere && this.num_info_locs >= num_infos_before_death) {
+            this.can_die_anywhere = true;
+            this.messages.push(this._can_die_anywhere_msg());
+        }
     }
 
     /* Returns locations mapped to their info objs of locations with newfound info (based on new_info_locs)
@@ -553,6 +560,10 @@ class Game {
         else if (info_key === 'markings') {
             return `You found a new marking at ${this.map.locations[location].name}! You could not determine its age.`
         }
+    }
+
+    _can_die_anywhere_msg() {
+        return `Info about the beast has been found at ${this.num_info_locs} locations! A rush of confidence sweeps over you...`;
     }
 
 }
