@@ -25,11 +25,6 @@
     align-items: center;
 }
 
-.info-bar {
-    height: 25px;
-    margin-bottom: 4px;
-}
-
 .loc-name {
     font-family: Lato, serif;
     font-size: 12px;
@@ -98,4 +93,36 @@
     display: inline-block;
     margin-left: 1px;
     margin-right: 1px;
+}
+
+.info-bar {
+    margin-bottom: 4px;
+    display: flex;
+}
+
+.aged-block {
+    display: flex;
+}
+
+.age-txt {
+    display: flex;
+    align-items: center;
+    margin-left: 1px;
+}
+
+.info-block {
+    display: flex;
+    flex-direction: column;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.day-found-txt {
+    text-align: center;
+    font-size: 10px;
+    height: 16px;
+}
+
+.info-bar-spacer {
+    height: 16px;
 }

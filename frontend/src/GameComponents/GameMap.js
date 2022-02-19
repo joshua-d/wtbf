@@ -29,7 +29,8 @@ class GameMap extends React.Component {
                     location={loc}
                     canvas_position={this.state.canvas_positions[loc.id]}
                     locClick={this.props.locClick}
-                    players_here={players_here} // TODO maybe pass in canvas_positions and put set rotation logic in InfoBar
+                    players_here={players_here}
+                    canvas_positions={this.state.canvas_positions}
                 />
             )
         }
