@@ -15,6 +15,11 @@ class Location extends React.Component {
             info_bar_spacer = <div className="info-bar-spacer" />
         }
 
+        let loc_name = <div className="loc-name">{this.props.location.name}</div>;
+        if (this.props.location.is_village) {
+            loc_name = <div className="loc-name bold">{this.props.location.name}</div>;
+        }
+
         return <div ref={this.loc_elem} className="location">
             {info_bar_spacer}
 
@@ -28,7 +33,7 @@ class Location extends React.Component {
                 />
             </div>
 
-            <div className="loc-name">{this.props.location.name}</div>
+            {loc_name}
             <div className="click-box" onClick={() => this.props.locClick(this.props.location.id)} />
             <PlayerDisplay players_here={this.props.players_here}/>
         </div>

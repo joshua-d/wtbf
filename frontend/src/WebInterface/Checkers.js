@@ -105,7 +105,7 @@ class VotesChecker extends Checker {
         },
         conn_id,
         callback,
-        1000); // TODO change this back to 5000
+        5000);
     }
 }
 

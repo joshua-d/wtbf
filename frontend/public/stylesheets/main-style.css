@@ -32,6 +32,11 @@
     height: 20px;
 }
 
+.bold {
+    font-weight: 600;
+    font-size: 14px;
+}
+
 .click-box {
     width: 70px;
     height: 70px;

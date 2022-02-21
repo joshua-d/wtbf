@@ -57,7 +57,6 @@ class GameMap extends React.Component {
         this.clearCanvas = this.clearCanvas.bind(this);
         this.drawConnectionLines = this.drawConnectionLines.bind(this);
         this.drawLocations = this.drawLocations.bind(this);
-        this.setInfoRotations = this.setInfoRotations.bind(this);
     }
 
     componentDidMount() {
@@ -73,8 +72,6 @@ class GameMap extends React.Component {
                 react.clearCanvas();
                 react.drawConnectionLines();
                 react.drawLocations();
-
-                react.setInfoRotations();
             });
         }
     }
@@ -199,14 +196,6 @@ class GameMap extends React.Component {
         }
     }
 
-    setInfoRotations() {
-        for (let loc of this.props.game_state.locations) {
-            for (let fp of loc.info.footprints) {
-
-            }
-        }
-        //this.setState({locations: this.state.locations});
-    }
 }
 
 export default GameMap;

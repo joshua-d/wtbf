@@ -13,7 +13,7 @@ const trace_chance = 0.33;
 const footprint_age_visible_chance = 0.5;
 const footprint_direction_visible_chance = 0.5;
 
-const num_infos_before_death = 3;
+//const num_infos_before_death = 3; // removed this functionality
 
 const min_beast_rampage = 1;
 const max_beast_rampage = 3;
@@ -92,7 +92,6 @@ class Game {
         this.visible_infos = {};
         this.village_infos = {};
         this.num_info_locs = 0;
-        this.can_die_anywhere = false;
         this.game_over = false;
 
         this.new_info_locs = [];
@@ -494,10 +493,10 @@ class Game {
     }
 
     /* Returns whether or not a player can die at location right now
-    *  Can die if X infos have been found, or this location has info present
+    *  Can die if this location has info present
     */
     _can_die(location) {
-        return this.can_die_anywhere || this.visible_infos[location].info_present;
+        return this.visible_infos[location].info_present;
     }
 
     /* Returns whether or not the player with id can move to location
@@ -637,12 +636,6 @@ class Game {
         }
 
         this._update_visible_locations();
-
-        // If can die anywhere is reached this turn, beast encounters have already been checked for - comes into effect next turn
-        if (!this.can_die_anywhere && this.num_info_locs >= num_infos_before_death) {
-            this.can_die_anywhere = true;
-            this.messages.push(this._can_die_anywhere_msg());
-        }
     }
 
     /* Returns locations mapped to their info objs of locations with newfound info (based on new_info_locs)
