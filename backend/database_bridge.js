@@ -21,8 +21,7 @@ let next_game_id = 0;
 * game_data_table[game.id] = {
     action_queue: [],
     performing_turn: false,
-    next_state_ready: false,
-    num_players_received_state: 0,
+    next_state_ready: { player_id: bool },
     votes: {}
 }
 *
@@ -104,18 +103,19 @@ function start_game(conn_id) {
     for (let room of rooms) {
         if (room.players.includes(conn_id)) {
             let game = new Game(_generate_game_id(), room.players.length);
+            let next_state_ready = {};
             for (let player_id = 0; player_id < room.players.length; player_id++) {
                 let player = room.players[player_id];
                 game_by_conn_id[player] = game;
                 player_id_by_conn_id[player] = player_id;
-                game_data_table[game.id] = {
-                    action_queue: [],
-                    performing_turn: false,
-                    next_state_ready: false,
-                    num_players_received_state: 0, // TODO a counter is used to check if all players have received the state - susceptible to tomfoolery
-                    votes: {}
-                };
+                next_state_ready[player_id] = false;
             }
+            game_data_table[game.id] = {
+                action_queue: [],
+                performing_turn: false,
+                next_state_ready: next_state_ready,
+                votes: {}
+            };
             games.push(game);
             console.log('game started');
             return true;
@@ -137,6 +137,7 @@ function get_game_state(conn_id) {
     let game_state = game.get_full_state();
     game_state.your_id = _get_player_id(conn_id);
     game_state.your_loc = game_state.players[game_state.your_id].location;
+    game_state.dead = game_state.players[game_state.your_id].dead;
     return game_state
 }
 
@@ -145,13 +146,20 @@ function get_game_state(conn_id) {
 function _check_for_turn_ready(game) {
     let game_data = game_data_table[game.id];
 
+    let num_alive_players = 0; // TODO consider making this a field of game, used in vote as well
+    for (let player of game.players) {
+        if (!player.dead)
+            num_alive_players += 1;
+    }
+
     if (game.trapping || game.ambushing) {
         game_data.performing_turn = true;
         game.do_turn();
-        game_data.next_state_ready = true;
+        for (let player of game.players) {
+            game_data.next_state_ready[player.id] = true;
+        }
     }
-    else if (game_data.action_queue.length === game.players.length) {
-
+    else if (game_data.action_queue.length === num_alive_players) {
         // All actions in, process the queue and do the turn
         game_data.performing_turn = true;
         for (let action of game_data.action_queue) {
@@ -163,7 +171,9 @@ function _check_for_turn_ready(game) {
         game_data.votes = {};
 
         game.do_turn();
-        game_data.next_state_ready = true;
+        for (let player of game.players) {
+            game_data.next_state_ready[player.id] = true;
+        }
     }
 }
 
@@ -174,6 +184,7 @@ function move_player(conn_id, loc_id) {
     let game_data = game_data_table[game.id];
 
     // Again, in 'prod' would have to check if there is already an action for this player in case they tomfool the FE
+    // TODO no handling on false return - player can submit action while performing turn
     if (!game_data.performing_turn && game.can_move(player_id, loc_id)) {
         game_data.action_queue.push({
             type: 'move',
@@ -229,20 +240,34 @@ function cancel_action(conn_id) {
 function check_for_next_state(conn_id) {
     let game = game_by_conn_id[conn_id];
     let game_data = game_data_table[game.id];
+    let player_id = player_id_by_conn_id[conn_id];
 
-    if (game_data.next_state_ready) {
+    if (game_data.next_state_ready[player_id]) {
         let game_state = get_game_state(conn_id);
-        game_data.num_players_received_state += 1;
-        if (game_data.num_players_received_state === game.players.length) {
+        game_data.next_state_ready[player_id] = false;
+
+        let all_states_received = true;
+        for (let player of game.players) {
+            if (game_data.next_state_ready[player.id]) {
+                all_states_received = false;
+                break;
+            }
+        }
+
+        if (all_states_received) {
             // All players have received state
             game_data.performing_turn = false;
-            game_data.next_state_ready = false;
-            game_data.num_players_received_state = 0;
         }
         return game_state
     }
 
     return null
+}
+
+function check_if_performing_turn(conn_id) {
+    let game = game_by_conn_id[conn_id];
+    let game_data = game_data_table[game.id];
+    return game_data.performing_turn;
 }
 
 
@@ -268,7 +293,13 @@ function vote(conn_id, loc_id) {
         }
         console.log(`player ${player_id} voted for ${loc_id}`);
 
-        if (game_data.votes[loc_id].length > Math.floor(game.players.length / 2)) {
+        let num_alive_players = 0; // TODO consider making this a field of game, used in _check_for_turn_ready as well
+        for (let player of game.players) {
+            if (!player.dead)
+                num_alive_players += 1;
+        }
+
+        if (game_data.votes[loc_id].length > Math.floor(num_alive_players / 2)) {
             // Vote for this loc went through
             game.ambush(loc_id);
             _check_for_turn_ready(game);
@@ -330,6 +361,7 @@ module.exports = {
     cancel_action,
 
     check_for_next_state,
+    check_if_performing_turn,
 
     vote,
     cancel_vote,

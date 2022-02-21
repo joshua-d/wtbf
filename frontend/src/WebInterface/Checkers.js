@@ -86,6 +86,18 @@ class GetNextStateChecker extends Checker {
 }
 
 
+class IsPerformingTurnChecker extends Checker {
+    constructor(conn_id, callback) {
+        super(function(conn_id) {
+            return reqs.request(`/game/is-performing-turn?conn_id=${conn_id}`);
+        },
+        conn_id,
+        callback,
+        500);
+    }
+}
+
+
 class VotesChecker extends Checker {
     constructor(conn_id, callback) {
         super(function(conn_id) {
@@ -93,7 +105,7 @@ class VotesChecker extends Checker {
         },
         conn_id,
         callback,
-        5000);
+        1000); // TODO change this back to 5000
     }
 }
 
@@ -102,5 +114,6 @@ class VotesChecker extends Checker {
 export {
     IsGameStartedChecker,
     GetNextStateChecker,
+    IsPerformingTurnChecker,
     VotesChecker
 }

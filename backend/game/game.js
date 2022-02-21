@@ -390,7 +390,7 @@ class Game {
     /* Returns whether or not the players can ambush location */
     can_ambush(location) {
         for (let player of this.players) {
-            if (player.location !== location && !this.map.locations[player.location].connections.includes(location)) {
+            if (!player.dead && player.location !== location && !this.map.locations[player.location].connections.includes(location)) {
                 return false;
             }
         }
@@ -407,7 +407,7 @@ class Game {
     /* Returns whether or not the players can trap at location */
     can_trap(location) {
         for (let player of this.players) {
-            if (player.location !== location) {
+            if (!player.dead && player.location !== location) {
                 return false;
             }
         }
@@ -436,15 +436,16 @@ class Game {
                 console.log('win');
                 this.messages.push('You won!');
                 this.game_over = true;
-                return;
             }
             else {
                 //Fucking lose
                 console.log('lose');
                 this.messages.push('You lost!');
                 this.game_over = true;
-                return;
             }
+            this.messages.push(this._beast_location_message());
+            this.messages.push(this._beast_path_message());
+            return;
         }
 
         // Check for beast encounters
@@ -470,6 +471,24 @@ class Game {
             }
         }
 
+        // Check for all players dead
+        let all_players_dead = true;
+        for (let player of this.players) {
+            if (!player.dead) {
+                all_players_dead = false;
+                break;
+            }
+        }
+        if (all_players_dead) {
+            //Fucking lose
+            console.log('lose');
+            this.messages.push('You lost!');
+            this.game_over = true;
+            this.messages.push(this._beast_location_message());
+            this.messages.push(this._beast_path_message());
+            return;
+        }
+
         // Check for infos
         this.new_info_locs = [];
         for (let player of this.players) {
@@ -482,7 +501,7 @@ class Game {
 
         this._update_visible_locations();
 
-        //If can die anywhere is reached this turn, beast encounters have already been checked for - comes into effect next turn
+        // If can die anywhere is reached this turn, beast encounters have already been checked for - comes into effect next turn
         if (!this.can_die_anywhere && this.num_info_locs >= num_infos_before_death) {
             this.can_die_anywhere = true;
             this.messages.push(this._can_die_anywhere_msg());
@@ -576,6 +595,19 @@ class Game {
 
     _can_die_anywhere_msg() {
         return `Info about the beast has been found at ${this.num_info_locs} locations! A rush of confidence sweeps over you...`;
+    }
+
+    _beast_path_message() {
+        let path_str = "The beast's path: ";
+        for (let loc_id of this.beast.path) {
+            path_str += this.map.locations[loc_id].name + ', '
+        }
+        path_str = path_str.substring(0, path_str.length - 2);
+        return path_str;
+    }
+
+    _beast_location_message() {
+        return `The beast's location: ${this.map.locations[this.beast.location].name}`;
     }
 
 }

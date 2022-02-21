@@ -1,5 +1,6 @@
 import reqs from "./requests.js";
 import { IsGameStartedChecker, GetNextStateChecker, VotesChecker } from './Checkers.js';
+import {IsPerformingTurnChecker} from "./Checkers";
 
 
 function check_for_game_started(conn_id, callback) {
@@ -32,6 +33,11 @@ function get_next_state(conn_id, callback) {
     checker.start();
 }
 
+function check_if_performing_turn(conn_id, callback) {
+    let checker = new IsPerformingTurnChecker(conn_id, callback);
+    checker.start();
+}
+
 async function vote(conn_id, loc_id) {
     let res = await reqs.request('/game/vote', 'POST', {conn_id: conn_id, loc_id: loc_id});
     return reqs.successful(res);
@@ -57,6 +63,7 @@ export default {
     cancel_action,
 
     get_next_state,
+    check_if_performing_turn,
 
     vote,
     cancel_vote,

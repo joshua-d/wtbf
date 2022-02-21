@@ -30,6 +30,8 @@ class Game extends React.Component {
                 can_ambush={this.can_ambush()}
                 can_trap={this.can_trap()}
                 game_over={this.state.game_state.game_over}
+                dead={this.state.game_state.dead}
+                performing_turn={this.state.performing_turn}
             />
 
             <MessageWindow
@@ -39,6 +41,8 @@ class Game extends React.Component {
             <VotingWindow
                 votes={this.state.votes}
             />
+
+            <div className="day-counter">Day: {this.state.game_state.day}</div>
         </div>
     }
 
@@ -50,7 +54,8 @@ class Game extends React.Component {
             game_state: {
                 players: [],
                 locations: [],
-                messages: []
+                messages: [],
+                day: 1
             },
 
             shouldDraw: false,
@@ -62,7 +67,8 @@ class Game extends React.Component {
             action_set: false,
             cp_msg: '',
 
-            votes: []
+            votes: [],
+            performing_turn: false
         };
 
         this.getLocationById = this.getLocationById.bind(this);
@@ -74,6 +80,7 @@ class Game extends React.Component {
         this.cancel_action = this.cancel_action.bind(this);
         this.cancel_vote = this.cancel_vote.bind(this);
         this.get_next_state = this.get_next_state.bind(this);
+        this.check_if_performing_turn = this.check_if_performing_turn.bind(this);
 
         // TODO move these into mount?
         let react = this;
@@ -279,20 +286,27 @@ class Game extends React.Component {
     can_ambush() {
         // { loc_id -> num players connected to it }
         let player_connections = {};
+        let num_alive_players = 0;
+
         for (let player of this.state.game_state.players) {
-            player_connections[player.location] = 0;
-            for (let conn of this.getLocationById(player.location).connections) {
-                player_connections[conn] = 0;
+            if (!player.dead) {
+                player_connections[player.location] = 0;
+                for (let conn of this.getLocationById(player.location).connections) {
+                    player_connections[conn] = 0;
+                }
+                num_alive_players += 1;
             }
         }
         for (let player of this.state.game_state.players) {
-            player_connections[player.location]++;
-            for (let conn of this.getLocationById(player.location).connections) {
-                player_connections[conn]++;
+            if (!player.dead) {
+                player_connections[player.location]++;
+                for (let conn of this.getLocationById(player.location).connections) {
+                    player_connections[conn]++;
+                }
             }
         }
         for (let loc_conns of Object.values(player_connections)) {
-            if (loc_conns >= this.state.game_state.players.length) {
+            if (loc_conns >= num_alive_players) {
                 return true;
             }
         }
@@ -301,7 +315,7 @@ class Game extends React.Component {
 
     can_ambush_at(loc_id) {
         for (let player of this.state.game_state.players) {
-            if (player.location !== loc_id && !this.getLocationById(player.location).connections.includes(loc_id)) {
+            if (!player.dead && player.location !== loc_id && !this.getLocationById(player.location).connections.includes(loc_id)) {
                 return false;
             }
         }
@@ -311,11 +325,12 @@ class Game extends React.Component {
     can_trap() {
         let trap_loc = null;
         for (let player of this.state.game_state.players) {
-            if (trap_loc == null) {
-                trap_loc = player.location;
-            }
-            else if (player.location !== trap_loc) {
-                return false;
+            if (!player.dead) {
+                if (trap_loc == null) {
+                    trap_loc = player.location;
+                } else if (player.location !== trap_loc) {
+                    return false;
+                }
             }
         }
         return true;
@@ -324,17 +339,36 @@ class Game extends React.Component {
     get_next_state() {
         let react = this;
         GameActions.get_next_state(this.state.conn_id, function(game_state) {
+
             if (game_state !== null) {
                 console.log(game_state);
                 react.setState({
                     game_state: game_state,
                     shouldDraw: true,
                     action_set: false,
+                    listening_for_move_click: false,
+                    listening_for_ambush_click: false,
+                    confirming: false,
+                    performing_turn: true,
                     cp_msg: ''
                 });
+
+                if (game_state.dead)
+                    react.get_next_state();
+
+                react.check_if_performing_turn();
+
                 return true;
             }
             return false;
+        });
+    }
+
+    check_if_performing_turn() {
+        let react = this;
+        GameActions.check_if_performing_turn(this.state.conn_id, function(performing_turn) {
+            react.setState({performing_turn: performing_turn});
+            return !performing_turn;
         });
     }
 

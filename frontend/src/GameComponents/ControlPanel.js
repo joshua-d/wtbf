@@ -5,7 +5,7 @@ class ControlPanel extends React.Component {
     render() {
 
         let btns = [];
-        if (!this.props.game_over) {
+        if (!this.props.game_over && !this.props.dead && !this.props.performing_turn) {
             if (!this.props.listening_for_move_click && !this.props.listening_for_ambush_click && !this.props.confirming && !this.props.action_set) {
                 btns.push(<button className="ui button cp-button" onClick={this.move}>Move</button>);
                 btns.push(<button className="ui button cp-button" onClick={this.stay}>Stay</button>);

@@ -127,3 +127,9 @@
 .info-bar-spacer {
     height: 16px;
 }
+
+.day-counter {
+    position: fixed;
+    top: 0;
+    right: 20px;
+}

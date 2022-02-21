@@ -66,4 +66,12 @@ router.get('/votes', function(req, res) {
     });
 });
 
+router.get('/is-performing-turn', function(req, res) {
+   let performing_turn = database.check_if_performing_turn(req.query.conn_id);
+   res.send({
+       status: 'success',
+       data: performing_turn
+   });
+});
+
 module.exports = router;
