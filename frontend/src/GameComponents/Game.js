@@ -142,7 +142,7 @@ class Game extends React.Component {
                     confirming: true,
                     confirm_fn: () => react.move(loc_id),
                     cancel_fn: react.cancel_choice,
-                    cp_msg: `Are you sure you'd like to move to the ${move_loc.name}?`
+                    cp_msg: `Are you sure you'd like to move to ${move_loc.name}?`
                 });
             }
             else {
@@ -187,7 +187,7 @@ class Game extends React.Component {
                 confirming: true,
                 confirm_fn: () => react.stay(your_loc.id),
                 cancel_fn: react.cancel_choice,
-                cp_msg: `Are you sure you'd like to stay at the ${your_loc.name}?`
+                cp_msg: `Are you sure you'd like to stay at ${your_loc.name}?`
             });
         }
         else if (btn === 'ambush') {

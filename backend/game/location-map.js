@@ -5,28 +5,67 @@ const base_village_amt = 1;
 const village_amt_variability = 1;
 
 const locations = [
-    "{ \"name\": \"Forest\",\"trace\": \"sap\" }",
-    "{ \"name\": \"Ruins\",\"trace\": \"rubble\" }",
-    "{ \"name\": \"Sinkhole\", \"trace\": \"dirt\" }",
-    "{ \"name\": \"Farm\", \"trace\": \"grain\" }",
-    "{ \"name\": \"Meadow\", \"trace\": \"grass\" }",
-    "{ \"name\": \"Cave\", \"trace\": \"rocks\" }",
-    "{ \"name\": \"Steppe\",\"trace\": \"reeds\" }",
-    "{ \"name\": \"Shrine\",\"trace\": \"apples\" }",
-    "{ \"name\": \"Cliff\", \"trace\": \"pebbles\" }",
-    "{ \"name\": \"Mountain\", \"trace\": \"stone\" }",
-    "{ \"name\": \"Bog\", \"trace\": \"slime\" }",
-    "{ \"name\": \"Well\", \"trace\": \"water\" }",
-    "{ \"name\": \"Pond\", \"trace\": \"scum\" }",
-    "{ \"name\": \"Waterfall\",\"trace\": \"driftwood\" }",
-    "{ \"name\": \"Gorge\",\"trace\": \"stone\" }",
-    "{ \"name\": \"Watchtower\", \"trace\": \"gravel\" }",
-    "{ \"name\": \"Geyser\",\"trace\": \"sulfur\" }",
-    "{ \"name\": \"Temple\",\"trace\": \"limestone\" }",
-    //special
-    //"{ \"name\": \"Beach\",\"trace\": \"shells\" }",
-    //"{ \"name\": \"Village\",\"trace\": \"meat\" }"
+    { name: 'Forest', trace: 'sap' },
+    { name: 'Ruins', trace: 'rubble' },
+    { name: 'Sinkhole', trace: 'dirt' },
+    { name: 'Farm', trace: 'grain' },
+    { name: 'Meadow', trace: 'grass' },
+    { name: 'Cave', trace: 'rocks' },
+    { name: 'Steppe', trace: 'reeds' },
+    { name: 'Shrine', trace: 'apples' },
+    { name: 'Cliff', trace: 'pebbles' },
+    { name: 'Mountain', trace: 'stone' },
+    { name: 'Bog', trace: 'slime' },
+    { name: 'Well', trace: 'water' },
+    { name: 'Pond', trace: 'scum' },
+    { name: 'Waterfall', trace: 'driftwood' },
+    { name: 'Gorge', trace: 'stone' },
+    { name: 'Watchtower', trace: 'gravel' },
+    { name: 'Geyser', trace: 'sulfur' },
+    { name: 'Temple', trace: 'limestone' },
+
+    { name: 'Ridge', trace: 'pebbles' },
+    { name: 'Hill', trace: 'moss' },
+    { name: 'Wetlands', trace: 'algae' },
 ];
+
+const names = [
+    'Kakariko',
+    'Eldin',
+    'Marley',
+    'Ordon',
+    'Twilight',
+    'Hyrule',
+    'Eldia',
+    'Venerable',
+    'Hero',
+    'Mikasa',
+    'Armin',
+    'Pyxis',
+    'Erwin',
+    'Goron',
+    'Zora',
+    'Mipha',
+    'Daruk',
+    'Urbosa',
+    'Rito',
+    'Medli',
+    'Morgana',
+    'Merlin',
+    'Vi',
+    'Jinx',
+    'Corrin',
+    'Robin',
+    'Kokiri',
+    'Gerudo',
+    'Epona',
+    'Spectacle',
+    'Lupin',
+    'Honorable',
+    'Windfall',
+    'Dragon Roost'
+];
+
 
 class LocationMap {
 
@@ -48,7 +87,12 @@ class LocationMap {
 
         //Location assignment
         for (let i = 0; i < this.location_amt; i++) {
-            let location = JSON.parse(locations[Math.floor(Math.random() * locations.length)]);
+            let location = {};
+            let loc_base = locations[Math.floor(Math.random() * locations.length)];
+            let name = names[Math.floor(Math.random() * names.length)];
+
+            location.name = `${name} ${loc_base.name}`;
+            location.trace = loc_base.trace;
 
             location.id = i;
             location.position = this.node_map.nodes[i].position;
@@ -70,14 +114,16 @@ class LocationMap {
         for (let i = 0; i < this.locations.length; i++) {
             if (this.locations[i].connections.length === 1) {
                 if (Math.random() < beach_chance) {
-                    this.locations[i].name = "Beach";
+                    let name = names[Math.floor(Math.random() * names.length)];
+                    this.locations[i].name = `${name} Beach`;
                     this.locations[i].trace = "shells";
                 }
             }
         }
         for (let i = 0; i < this.village_amt; i++) {
             let index = Math.floor(Math.random() * this.location_amt);
-            this.locations[index].name = "Village";
+            let name = names[Math.floor(Math.random() * names.length)];
+            this.locations[index].name = `${name} Village`;
             this.locations[index].trace = "meat";
         }
 
