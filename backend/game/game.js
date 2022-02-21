@@ -13,18 +13,14 @@ const trace_chance = 0.33;
 const footprint_age_visible_chance = 0.5;
 const footprint_direction_visible_chance = 0.5;
 
-const beast_path_length_info_zone = 0.33;
-const beast_step_info_zone = 0.66;
-const beast_pattern_info_zone = 1;
-const beast_path_length_info_variability = 5;
-const beast_path_length_info_correct_chance = 0.5;
-const beast_step_info_correct_chance = 0.5;
-const beast_pattern_info_incorrect_range = 2;
-
 const num_infos_before_death = 3;
 
 const min_beast_rampage = 1;
 const max_beast_rampage = 3;
+
+const max_beast_single_loc_steps = max_beast_path_retrace_amount + 1;
+const beast_path_length_village_variability = 5;
+const village_call_wrong_chance = 0.5;
 
 
 /*
@@ -94,6 +90,7 @@ class Game {
         this.day = 1;
         this.infos = {};
         this.visible_infos = {};
+        this.village_infos = {};
         this.num_info_locs = 0;
         this.can_die_anywhere = false;
         this.game_over = false;
@@ -105,9 +102,18 @@ class Game {
         this._generate_map(player_amt);
         this._init_players(player_amt);
         this._init_infos();
+        this._init_village_infos();
 
         this.visible_locations.push(this.player_start);
         this._update_visible_locations();
+
+        console.log('Village infos:');
+        console.log(this.village_infos);
+
+        console.log('\nBeast path:');
+        for (let loc of this.beast.path) {
+            console.log(this.map.locations[loc].name);
+        }
     }
 
     /* Sets this.map, this.beast.path, this.beast.location, this.beast.path_index, and this.player_start
@@ -184,6 +190,123 @@ class Game {
                 aged_markings: [],
                 info_present: false
             };
+        }
+    }
+
+    /* Generates village info and populates this.village_infos */
+    _init_village_infos() {
+        let village_ids = [];
+        for (let loc of this.map.locations) {
+            if (loc.is_village) {
+                village_ids.push(loc.id);
+            }
+        }
+
+        let called_wrong_by = {};
+        let call_wrong = {};
+
+        for (let vil_id of village_ids) {
+            if (Math.random() < village_call_wrong_chance && village_ids.length > 1) {
+                // Choose a village to call you wrong
+                let caller_idx;
+                do {
+                    caller_idx = Math.floor(Math.random() * village_ids.length);
+                }
+                while (caller_idx === village_ids.indexOf(vil_id));
+                called_wrong_by[vil_id] = village_ids[caller_idx];
+                call_wrong[village_ids[caller_idx]] = vil_id;
+            }
+            else
+                called_wrong_by[vil_id] = null;
+        }
+
+        for (let vil_id of village_ids) {
+            if (vil_id in call_wrong) {
+                this.village_infos[vil_id] = `${this.map.locations[vil_id].name}: The word of ${this.map.locations[call_wrong[vil_id]].name} can't be trusted!`;
+            }
+            else {
+                // Figure out if you are wrong
+                let wrong = false;
+                let next_caller = called_wrong_by[vil_id];
+                while (next_caller != null && called_wrong_by[next_caller] !== vil_id) { // second case prevents inf loop if call each other wrong
+                    next_caller = called_wrong_by[next_caller];
+                    wrong = !wrong;
+                }
+
+                // TODO wrong villages coooould be right about something
+                // Roll for info
+                let roll = Math.random();
+
+                if (roll < 0.25) {
+                    // Beast step info
+                    let step_loc;
+                    if (wrong)
+                        step_loc = this.map.locations[Math.floor(Math.random() * this.map.locations.length)];
+                    else
+                        step_loc = this.map.locations[this.beast.path[Math.floor(Math.random() * this.beast.path.length)]];
+
+                    this.village_infos[vil_id] = `${this.map.locations[vil_id].name}: Legend says the beast travels through ${step_loc.name}.`;
+                }
+                else if (roll < 0.50) {
+                    // Beast step & amt info
+                    let step_loc;
+                    let step_amt;
+                    if (wrong) {
+                        step_loc = this.map.locations[Math.floor(Math.random() * this.map.locations.length)];
+                        step_amt = 1 + Math.floor(Math.random() * max_beast_single_loc_steps); // between 1 and max
+                    }
+                    else {
+                        let multiple_touch_ids = [];
+                        for (let loc_id of this.beast.path) {
+                            let count = 0;
+                            for (let comp_loc_id of this.beast.path) {
+                                if (comp_loc_id === loc_id)
+                                    ++count;
+                            }
+                            if (count > 1)
+                                multiple_touch_ids.push({id: loc_id, count: count});
+                        }
+                        if (multiple_touch_ids.length > 0) {
+                            let step_loc_mt = multiple_touch_ids[Math.floor(Math.random() * multiple_touch_ids.length)];
+                            step_loc = this.map.locations[step_loc_mt.id];
+                            step_amt = step_loc_mt.count;
+                        }
+                        else {
+                            step_loc = this.map.locations[this.beast.path[Math.floor(Math.random() * this.beast.path.length)]];
+                            step_amt = 1;
+                        }
+                    }
+
+                    this.village_infos[vil_id] = `${this.map.locations[vil_id].name}: Legend says the beast travels through ${step_loc.name} ${step_amt} times.`;
+                }
+                else if (roll < 0.75) {
+                    // Beast path length info
+                    let path_length = this.beast.path.length;
+                    if (wrong) {
+                        if (Math.random() > 0.5)
+                            path_length += 1 + Math.floor(Math.random() * beast_path_length_village_variability);
+                        else
+                            path_length -= 1 + Math.floor(Math.random() * beast_path_length_village_variability);
+                    }
+                    this.village_infos[vil_id] = `${this.map.locations[vil_id].name}: Legends says the beast returns to its start every ${path_length} days.`;
+                }
+                else {
+                    // Beast move info
+                    let from;
+                    let to;
+                    if (wrong) {
+                        from = this.map.locations[Math.floor(Math.random() * this.map.locations.length)];
+                        to = this.map.locations[from.connections[Math.floor(Math.random() * from.connections.length)]];
+                    }
+                    else {
+                        let from_idx = Math.floor(Math.random() * this.beast.path.length);
+                        let to_idx = (from_idx + 1) % this.beast.path.length;
+                        from = this.map.locations[this.beast.path[from_idx]];
+                        to = this.map.locations[this.beast.path[to_idx]];
+                    }
+                    this.village_infos[vil_id] = `${this.map.locations[vil_id].name}: Legend says the beast moves from ${from.name} to ${to.name}.`;
+                }
+            }
         }
     }
 
@@ -361,6 +484,12 @@ class Game {
             ++this.num_info_locs;
         }
 
+        // Check for village info
+        // TODO msg will be added for each player there, too lazy to fix
+        if (this.map.locations[location].is_village) {
+            messages.push(this.village_infos[location]);
+        }
+
         return messages;
     }
 
@@ -426,6 +555,8 @@ class Game {
         this.messages = [];
 
         this._move_beast();
+        console.log('Beast loc:');
+        console.log(this.map.locations[this.beast.location].name);
 
         ++this.day;
 
@@ -449,13 +580,14 @@ class Game {
         }
 
         // Check for beast encounters
+        let should_rampage = false;
         for (let player of this.players) {
             if (!player.dead && player.location === this.beast.location) {
                 //Player has run into beast
                 if (this._can_die(player.location)) {
                     //Player dies
                     player.die();
-                    this._rampage_beast();
+                    should_rampage = true;
                     this.messages.push(this._player_death_message(player));
                 }
                 else {
@@ -469,6 +601,11 @@ class Game {
             else if (!player.dead) {
                 this.map.locations[player.location].visited = true;
             }
+        }
+        if (should_rampage) {
+            this._rampage_beast();
+            console.log('Beast rampaged, new loc:');
+            console.log(this.map.locations[this.beast.location].name);
         }
 
         // Check for all players dead

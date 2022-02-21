@@ -1,8 +1,6 @@
 const NodeMap = require('./node-map.js');
 
 const beach_chance = 0.33;
-const base_village_amt = 1;
-const village_amt_variability = 1;
 
 const locations = [
     { name: 'Forest', trace: 'sap' },
@@ -72,8 +70,12 @@ class LocationMap {
     constructor(player_amt) {
         this.node_map = new NodeMap(player_amt);
         this.location_amt = this.node_map.nodes.length;
-        this.village_amt = base_village_amt + player_amt - 2 - village_amt_variability + Math.floor(Math.random() * (village_amt_variability * 2 + 1));
-        if (this.village_amt === 0)
+
+        let min_village_amt = player_amt - 1;
+        let max_village_amt = player_amt + Math.floor(player_amt / 2);
+        this.village_amt = min_village_amt + Math.floor(Math.random() * (max_village_amt - min_village_amt + 1));
+
+        if (this.village_amt === 0) // not really sure why this is here
             this.village_amt = 1;
 
         this._generate_locations();
@@ -97,6 +99,7 @@ class LocationMap {
             location.id = i;
             location.position = this.node_map.nodes[i].position;
             location.visited = false;
+            location.is_village = false;
 
             this.locations.push(location);
         }
@@ -125,6 +128,7 @@ class LocationMap {
             let name = names[Math.floor(Math.random() * names.length)];
             this.locations[index].name = `${name} Village`;
             this.locations[index].trace = "meat";
+            this.locations[index].is_village = true;
         }
 
     }

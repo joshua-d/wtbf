@@ -154,6 +154,7 @@ function _check_for_turn_ready(game) {
 
     if (game.trapping || game.ambushing) {
         game_data.performing_turn = true;
+        console.log('doing turn');
         game.do_turn();
         for (let player of game.players) {
             game_data.next_state_ready[player.id] = true;
@@ -170,6 +171,7 @@ function _check_for_turn_ready(game) {
         game_data.action_queue = [];
         game_data.votes = {};
 
+        console.log('doing turn');
         game.do_turn();
         for (let player of game.players) {
             game_data.next_state_ready[player.id] = true;
@@ -191,8 +193,8 @@ function move_player(conn_id, loc_id) {
             player_id: player_id,
             loc_id: loc_id
         });
-        _check_for_turn_ready(game);
         console.log(`player ${player_id} moved to ${loc_id}`);
+        _check_for_turn_ready(game);
         return true;
     }
 
@@ -209,8 +211,8 @@ function stay_player(conn_id) {
             action: 'stay',
             player_id: player_id
         });
-        _check_for_turn_ready(game);
         console.log(`player ${player_id} stayed`);
+        _check_for_turn_ready(game);
         return true;
     }
 
@@ -256,6 +258,7 @@ function check_for_next_state(conn_id) {
 
         if (all_states_received) {
             // All players have received state
+            console.log('all states received');
             game_data.performing_turn = false;
         }
         return game_state
