@@ -25,6 +25,7 @@ const locations = [
     { name: 'Ridge', trace: 'pebbles' },
     { name: 'Hill', trace: 'moss' },
     { name: 'Wetlands', trace: 'algae' },
+    { name: 'Snowdrift', trace: 'snow' }
 ];
 
 const names = [
@@ -61,7 +62,23 @@ const names = [
     'Lupin',
     'Honorable',
     'Windfall',
-    'Dragon Roost'
+    'Dragon Roost',
+    'Akkala',
+    'Akali',
+    'Gnar',
+    'Hateno',
+    'Lurelin',
+    'Naydra',
+    'Lanayru',
+    'Satori',
+    'Kohaku',
+    'Laputa',
+    'Iron',
+    'Golden',
+    'Diamond',
+    'Minnish',
+    'Termina',
+    'Ikana'
 ];
 
 
