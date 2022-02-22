@@ -411,9 +411,9 @@ class Game {
     }
 
     /* Beast rampages forward without leaving info - between min & max, then steps until not in a player's loc */
+    // TODO henry edit - rampage goes to random loc in path
     _rampage_beast() {
-        let rampage_len = min_beast_rampage + Math.floor((Math.random() * (max_beast_rampage - min_beast_rampage + 1)));
-        let next_path_index = (this.beast.path_index + rampage_len) % this.beast.path.length;
+        let next_path_index = Math.floor(Math.random() * this.beast.path.length);
         let next_location = this.beast.path[next_path_index];
 
         let player_locs = [];
@@ -428,7 +428,7 @@ class Game {
         * will run forever. Num players can never be GTE beast path len
         */
         while (player_locs.includes(next_location)) {
-            next_path_index = (this.beast.path_index + 1) % this.beast.path.length;
+            next_path_index = Math.floor(Math.random() * this.beast.path.length);
             next_location = this.beast.path[next_path_index];
         }
 
@@ -595,6 +595,7 @@ class Game {
                     let player_loc = player.location;
                     player.location = player.prev_location;
                     player.prev_location = player_loc;
+                    should_rampage = true;
                 }
             }
             else if (!player.dead) {
