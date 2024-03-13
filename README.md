@@ -1,6 +1,8 @@
 # Walky-Talky Bigfoot
 ### A cooperative multiplayer online puzzle game
 
+![image depicting the game during play](https://github.com/joshua-d/wtbf/blob/master/github_img/map_img_1.png?raw=true)
+
 #### Build & Start Server
 
 in frontend and backend:
